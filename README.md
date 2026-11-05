@@ -1,195 +1,119 @@
-# Explainable AI Framework for Stroke Risk Prediction
+# Explainable Machine Learning for Stroke-History Classification
 
-## Project Overview
+A B.Sc. Computer Science research project exploring whether machine-learning models can classify **self-reported history of stroke** from health-survey responses and explain the patterns they learn.
 
-This project implements an **Explainable Artificial Intelligence (XAI)–based Stroke Risk Prediction System** designed as a clinical decision support tool. The system predicts an individual’s risk of stroke using routine demographic and clinical variables and provides **transparent explanations** for each prediction to support clinical trust and decision-making.
+> **Research scope:** The selected CDC BRFSS source is a cross-sectional survey. Its stroke outcome records reported history of stroke; it does not establish whether a respondent will experience a stroke in the future. This project is not a clinical diagnostic system, medical device, or validated personal risk calculator.
 
-The project was developed as a **final-year B.Sc. Computer Science project** and focuses on applicability in **low- and middle-income settings such as Nigeria**, where early screening and prevention are critical.
+## Current status
 
----
+This repository is an early prototype and research scaffold.
 
-## Key Features
+- A small FastAPI backend and HTML/Bootstrap interface exist.
+- The current `app.py` uses a hand-written scoring formula, not a trained machine-learning model.
+- The UI collects some variables that the current scoring formula does not use.
+- SHAP/LIME explanations, model training, validation and clinical evaluation have **not** yet been implemented.
 
-* Web-based user interface for entering patient clinical data
-* Machine learning–based stroke risk prediction
-* Risk categorization (Low / Moderate / High)
-* Explainable AI output showing key contributing risk factors
-* RESTful backend API with auto-generated documentation (OpenAPI)
-* Modular and reproducible system architecture
+The prototype's current output must not be interpreted as a medically meaningful probability or recommendation. The research pipeline will replace the demonstration score after the dataset has been inspected and models have been trained and evaluated.
 
----
+## Selected research data source
 
-## System Architecture
+**CDC 2025 Behavioral Risk Factor Surveillance System (BRFSS)**
 
-The system follows a **client–server architecture**:
+- [Official 2025 annual data and documentation](https://www.cdc.gov/brfss/annual_data/2025/annual_2025.html)
+- [Official public-use XPT archive](https://www.cdc.gov/brfss/annual_data/2025/files/LLCP2025XPT.zip)
 
-1. **Frontend (Web UI)**
+BRFSS is a US cross-sectional health survey. We will verify the outcome coding, candidate predictors, missing-value codes and survey design variables against the official 2025 codebook before analysis. Because the source represents US survey respondents, findings must not automatically be generalised to Nigerian clinical populations.
 
-   * HTML, Bootstrap
-   * Collects patient data and displays predictions
+### Data handling
 
-2. **Backend API**
+Download and extract the XPT archive locally. Keep the original data under `data/raw/`. Raw respondent-level data, processed respondent-level exports and local analysis outputs are excluded from Git by `.gitignore`.
 
-   * Built with FastAPI (Python)
-   * Receives patient data and returns predictions
+Do not commit the CDC source file, patient-level exports, private data or secrets. See [data/README.md](data/README.md) for handling instructions and [docs/RESEARCH-PLAN.md](docs/RESEARCH-PLAN.md) for the analysis plan.
 
-3. **Prediction Logic**
+## Planned research workflow
 
-   * Stroke risk computed from clinical variables
-   * Designed to be replaceable with trained ML models
+1. **Dataset inspection:** verify the CDC codebook, outcome definition, field names, survey weights, strata and primary sampling units.
+2. **Data quality and EDA:** assess record counts, missingness, duplicates, coding, distributions and outcome prevalence.
+3. **Preprocessing:** build documented, reproducible transformations without treating unknown/refused responses as negative responses.
+4. **Modelling:** establish a Logistic Regression baseline, then compare appropriate tree-based models.
+5. **Evaluation:** assess recall/sensitivity, specificity, precision, F1, precision-recall AUC, ROC-AUC and calibration. Account for class imbalance and the survey design.
+6. **Explainability:** add SHAP only after selecting and validating a model; explanations describe model behaviour, not medical causation.
+7. **Application integration:** connect the trained, versioned model to the API and clearly communicate the research outcome and limitations.
 
-4. **Explainability Layer**
+## Technology
 
-   * Provides human-readable explanations inspired by SHAP/LIME
+- Python
+- FastAPI and Uvicorn
+- HTML5, Bootstrap 5 and JavaScript
+- Planned: pandas, NumPy, scikit-learn, a suitable survey-analysis package and SHAP (selected versions will be pinned after the analysis environment is established)
 
----
+## Run the current prototype
 
-## Technologies Used
+The commands below run the existing demonstration only; they do not train a model.
 
-* **Python 3.9+**
-* **FastAPI** (Backend framework)
-* **Uvicorn** (ASGI server)
-* **HTML5 & Bootstrap 5** (Frontend UI)
-* **JavaScript (Fetch API)**
+1. Clone the repository:
 
----
+   ```bash
+   git clone https://github.com/ARGS-PYH/Stroke-prediction.git
+   cd Stroke-prediction
+   ```
 
-## Project Structure
+2. Create and activate a virtual environment:
 
-```
-stroke-risk-prediction-app/
-│
-├── app.py            # FastAPI backend
-├── index.html        # Web user interface
-├── README.md         # Project documentation
-└── requirements.txt  # Python dependencies
-```
+   ```bash
+   python -m venv .venv
+   # Windows PowerShell
+   .venv\Scripts\Activate.ps1
+   # Git Bash
+   source .venv/Scripts/activate
+   ```
 
----
+3. Install the current API dependencies:
 
-## How to Run the Project
+   ```bash
+   python -m pip install -r requirements.txt
+   ```
 
-### 1. Clone or Download the Repository
+4. Start the API:
 
-```bash
-git clone <repository-url>
-cd stroke-risk-prediction-app
-```
+   ```bash
+   python -m uvicorn app:app --reload
+   ```
 
-### 2. Install Dependencies
+5. Open the API documentation at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
 
-```bash
-python -m pip install fastapi uvicorn
-```
+6. In a second terminal, serve the frontend:
 
-### 3. Start the Backend Server
+   ```bash
+   python -m http.server 5500
+   ```
 
-```bash
-python -m uvicorn app:app --reload
-```
+   Then open [http://127.0.0.1:5500/index.html](http://127.0.0.1:5500/index.html).
 
-The backend will run at:
+## Academic and ethical considerations
 
-```
-http://127.0.0.1:8000
-```
+- The primary outcome is self-reported previous stroke, not future stroke incidence.
+- Survey design, weighting, missingness, outcome imbalance and measurement limitations must be described.
+- Model explanations must not be presented as causal effects.
+- A US survey does not establish performance or clinical suitability in Nigeria.
+- Do not enter real patient-identifiable information into the prototype.
+- Outputs are for academic research and demonstration, not diagnosis, treatment or medical advice.
 
-### 4. Open API Documentation
+## Project documentation
 
-Visit:
-
-```
-http://127.0.0.1:8000/docs
-```
-
-### 5. Serve the Frontend
-
-In a new terminal:
-
-```bash
-python -m http.server 5500
-```
-
-Open in browser:
-
-```
-http://localhost:5500/index.html
-```
-
----
-
-## Sample Input
-
-```json
-{
-  "age": 60,
-  "hypertension": 1,
-  "heart_disease": 0,
-  "avg_glucose_level": 155,
-  "bmi": 29
-}
-```
-
-## Sample Output
-
-```json
-{
-  "risk_score": 0.9,
-  "risk_level": "High",
-  "explanation": "Age and hypertension contributed most to the risk."
-}
-```
-
----
-
-## Explainable AI Component
-
-Instead of returning only a numerical prediction, the system provides an **explainable insight** that highlights the most influential clinical features for each prediction. This improves transparency, trust, and suitability for healthcare decision support.
-
-The explainability approach is inspired by **SHAP and LIME**, ensuring that predictions are interpretable by clinicians and non-technical stakeholders.
-
----
-
-## Ethical Considerations
-
-* The system is designed as a **decision support tool**, not a diagnostic replacement
-* No real patient data is stored
-* The model emphasizes transparency and accountability
-* Deployment requires ethical approval and data governance compliance
-
----
-
-## Limitations
-
-* Uses simulated or publicly available data for demonstration
-* Does not replace professional medical judgment
-* Performance may vary across populations without local validation
-
----
-
-## Future Work
-
-* Integration of trained machine learning models (Random Forest, XGBoost)
-* Visual SHAP-based explanations (charts)
-* Deployment on cloud platforms
-* External validation using Nigerian hospital datasets
-
----
+- [Research plan](docs/RESEARCH-PLAN.md)
+- [Dataset handling guide](data/README.md)
 
 ## Author
 
-**Animasaun Damilare Aderinwale**
-B.Sc. Computer Science
+**Animasaun Damilare Aderinwale**  
+B.Sc. Computer Science  
 Federal University Oye-Ekiti, Nigeria
-
----
 
 ## Supervisor
 
 Dr. Stephen Aderibigbe
 
----
-
 ## License
 
-This project is for **academic and research purposes only**.
+For academic and research purposes. A specific open-source licence has not yet been selected.
