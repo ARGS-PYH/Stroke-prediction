@@ -37,6 +37,17 @@ This creates `data/processed/brfss2025_stroke_history_analysis.csv.gz` plus an a
 
 The CDC ZIP member currently has a trailing space in its internal XPT filename; the scripts normalize the name when extracting to a temporary directory.
 
+## Run exploratory data analysis
+
+After preparing the analysis extract, run:
+
+```bash
+python -m pip install -r requirements-research.txt
+python scripts/eda_brfss.py --input data/processed/brfss2025_stroke_history_analysis.csv.gz
+```
+
+The EDA script writes aggregate subgroup tables, missingness summaries, charts, and a JSON summary under `reports/generated/`. It does not write respondent-level rows. See the [BRFSS 2025 EDA report](../docs/EDA-2025.md) for the first-pass findings and survey-design limitations.
+
 ## Important handling rules
 
 - Do not commit the source XPT/ZIP file, respondent-level CSV exports, processed respondent-level data, or notebooks containing copied rows to GitHub.
