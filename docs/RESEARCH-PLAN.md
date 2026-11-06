@@ -40,7 +40,17 @@ The source file and codebook have been inspected. Record the download date, sour
 
 No predictor imputation, feature selection, class resampling or model fitting has occurred at this stage.
 
-## 5. Survey design and evaluation
+## 5. Initial exploratory data analysis
+
+The first-pass EDA has been completed and documented in [EDA-2025.md](EDA-2025.md). The prepared valid-outcome cohort contains 354,950 respondents: 16,353 Yes and 338,597 No. The unweighted Yes share is 4.61%; the `_LLCPWT`-weighted share among valid Yes/No records is 3.66%. The class ratio is approximately 20.7:1.
+
+Descriptive weighted subgroup estimates show a higher share reporting prior stroke among older respondents and respondents reporting hypertension, heart attack/coronary heart disease, diabetes, current smoking, and no recent leisure-time physical activity. BMI shows no simple monotonic pattern. These results are unadjusted and cross-sectional; they do not establish temporal order or causality.
+
+BMI missingness is 9.10% and smoking-status missingness is 5.77%. The retained domain contains 2,090 strata and 19,766 distinct PSU codes; 94 strata contain only one retained PSU after the binary-outcome filter. No survey-design standard errors, confidence intervals, or p-values were calculated in this EDA. A survey-design-aware variance strategy is required before inferential or population-level uncertainty claims.
+
+The reproducible script is `scripts/eda_brfss.py`. Aggregate outputs are written locally to the ignored `reports/generated/` directory.
+
+## 6. Survey design and evaluation
 
 BRFSS uses a complex sample design. The prepared file preserves the final weight (`_LLCPWT`), stratum (`_STSTR`) and primary sampling unit (`_PSU`). Define how these inform population-level descriptive estimates and the evaluation strategy before making population-level claims.
 
@@ -48,7 +58,7 @@ Do not describe a naive random split as representative of the survey population 
 
 The positive outcome is a minority class. Report sensitivity/recall, specificity, precision, F1, precision-recall AUC, ROC-AUC, confusion matrix and calibration where appropriate. Accuracy alone is insufficient. Any resampling must occur only inside training folds.
 
-## 6. Candidate modelling workflow
+## 7. Candidate modelling workflow
 
 Start with transparent baselines and add complexity only when justified:
 
@@ -58,17 +68,17 @@ Start with transparent baselines and add complexity only when justified:
 
 Use reproducible seeds, record package versions, preserve the final evaluation split, and tune without inspecting final test results.
 
-## 7. Explainability
+## 8. Explainability
 
 Use SHAP only after selecting and validating a model. Global summaries and individual explanations describe how the fitted model uses inputs; they do not establish medical causation.
 
-## 8. Fairness, generalisability and ethics
+## 9. Fairness, generalisability and ethics
 
 BRFSS is a US population survey. Findings cannot automatically be generalised to Nigeria or Nigerian clinical populations. Discuss differences in sampling, healthcare access, demographics, measurement and self-reporting.
 
 Do not use real identifiable patient data. Do not collect patient information in the demo. Do not present outputs as medical advice, diagnosis or a personal forecast of future stroke.
 
-## 9. Reproducibility deliverables
+## 10. Reproducibility deliverables
 
 - Dataset provenance and variable dictionary.
 - Data-quality and exploratory-analysis report.
@@ -78,7 +88,7 @@ Do not use real identifiable patient data. Do not collect patient information in
 - Updated API and UI stating the study scope.
 - Limitations, ethical considerations and future work.
 
-## 10. Current status
+## 11. Current status
 
 The repository contains a prototype API with a manually defined score, a documented research plan, a first-pass data audit, and a tested data-preparation script. It does not yet contain a trained machine-learning model, a model-evaluation pipeline or SHAP explanations. These will be developed and tested before the project claims to implement them.
 
