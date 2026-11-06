@@ -58,6 +58,15 @@ Only `CVDSTRK3` responses coded 1 (Yes) and 2 (No) are retained for binary class
 
 The initial valid-outcome cohort has 354,950 records: 16,353 Yes and 338,597 No. The class ratio is approximately 20.7 to 1. The prepared extract retains the final survey weight (`_LLCPWT`), stratum (`_STSTR`), and primary sampling unit (`_PSU`) separately from model predictors.
 
+## Current analysis status
+
+The initial exploratory analysis is complete. The valid Yes/No cohort contains 354,950 respondents (16,353 Yes; 338,597 No). The unweighted Yes share is 4.61%, and the weighted share among valid Yes/No records is 3.66%. The initial descriptive comparisons show higher reported prior-stroke prevalence in older age bands and among respondents reporting hypertension, heart attack/coronary heart disease, diabetes, current smoking, or no recent leisure-time physical activity. These are unadjusted, cross-sectional comparisons, not causal or prospective risk estimates.
+
+- [BRFSS 2025 EDA report](docs/EDA-2025.md)
+- [Reproducible EDA script](scripts/eda_brfss.py)
+
+No model has been trained. Survey-design standard errors and confidence intervals have not yet been calculated; the EDA report documents the singleton-PSU issue that must be handled before inferential survey estimates.
+
 ## Planned research workflow
 
 1. **Data quality and EDA:** profile missingness, response distributions, survey-weighted prevalence, and feature relationships.
