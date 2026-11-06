@@ -16,18 +16,26 @@ data/
     └── LLCP2025XPT.zip
 ```
 
-The audit script accepts the ZIP archive directly; you do not need to extract it yourself. It also accepts an extracted XPT file.
+Both scripts accept the ZIP archive directly; you do not need to extract it yourself.
 
-## Run the first data audit
-
-From the repository root:
+## Run the data audit
 
 ```bash
 python -m pip install -r requirements-research.txt
 python scripts/audit_brfss.py --input data/raw/LLCP2025XPT.zip
 ```
 
-The script reads the XPT in chunks and writes aggregate summaries to `reports/generated/`. It does not write respondent-level rows. The CDC ZIP member currently has a trailing space in its internal filename; the script normalizes that name when extracting to a temporary directory.
+The audit script reads the XPT in chunks and writes aggregate summaries to `reports/generated/`. It does not write respondent-level rows.
+
+## Prepare the analysis extract
+
+```bash
+python scripts/prepare_brfss.py --input data/raw/LLCP2025XPT.zip
+```
+
+This creates `data/processed/brfss2025_stroke_history_analysis.csv.gz` plus an aggregate `preparation_profile.json`. The analysis extract is respondent-level data and stays local; the script does not impute missing predictors or resample classes. It preserves survey weights, strata, and PSUs as separate metadata columns.
+
+The CDC ZIP member currently has a trailing space in its internal XPT filename; the scripts normalize the name when extracting to a temporary directory.
 
 ## Important handling rules
 
@@ -43,4 +51,4 @@ The script reads the XPT in chunks and writes aggregate summaries to `reports/ge
 
 The dataset is a cross-sectional US health survey. The outcome `CVDSTRK3` concerns self-reported history of stroke, not future stroke incidence. Results should not be presented as clinical diagnosis or as a validated prediction of an individual's future stroke.
 
-See [the research plan](../docs/RESEARCH-PLAN.md) and [the initial data audit](../docs/DATA-AUDIT-2025.md).
+See [the research plan](../docs/RESEARCH-PLAN.md), [the initial data audit](../docs/DATA-AUDIT-2025.md), and [the preparation report](../docs/PREPARATION-2025.md).
