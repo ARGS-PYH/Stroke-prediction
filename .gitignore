@@ -24,6 +24,9 @@ ENV/
 /data/raw/
 /data/processed/
 
+# Generated reports and local outputs
+/reports/generated/
+
 # Generated model artifacts and local outputs
 /models/
 *.joblib
