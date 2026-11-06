@@ -6,14 +6,16 @@ A B.Sc. Computer Science research project exploring whether machine-learning mod
 
 ## Current status
 
-This repository is an early prototype and research scaffold.
+This repository contains an early application prototype and an emerging research pipeline.
 
 - A small FastAPI backend and HTML/Bootstrap interface exist.
 - The current `app.py` uses a hand-written scoring formula, not a trained machine-learning model.
 - The UI collects some variables that the current scoring formula does not use.
-- SHAP/LIME explanations, model training, validation and clinical evaluation have **not** yet been implemented.
+- The CDC BRFSS 2025 codebook and dataset have been inspected.
+- A reproducible data audit and preprocessing script have been added, with tests for the outcome and predictor recoding rules.
+- No model has been trained or evaluated; SHAP/LIME explanations and clinical evaluation have not been implemented.
 
-The prototype's current output must not be interpreted as a medically meaningful probability or recommendation. The research pipeline will replace the demonstration score after the dataset has been inspected and models have been trained and evaluated.
+The prototype's current output must not be interpreted as a medically meaningful probability or recommendation.
 
 ## Selected research data source
 
@@ -22,30 +24,56 @@ The prototype's current output must not be interpreted as a medically meaningful
 - [Official 2025 annual data and documentation](https://www.cdc.gov/brfss/annual_data/2025/annual_2025.html)
 - [Official public-use XPT archive](https://www.cdc.gov/brfss/annual_data/2025/files/LLCP2025XPT.zip)
 
-BRFSS is a US cross-sectional health survey. We will verify the outcome coding, candidate predictors, missing-value codes and survey design variables against the official 2025 codebook before analysis. Because the source represents US survey respondents, findings must not automatically be generalised to Nigerian clinical populations.
+The inspected file contains 356,158 respondents and 283 variables. The outcome `CVDSTRK3` asks whether a health professional has ever told the respondent they had a stroke. It is a measure of reported prior history, not future stroke incidence.
 
-### Data handling
+## Data handling
 
-Download and extract the XPT archive locally. Keep the original data under `data/raw/`. Raw respondent-level data, processed respondent-level exports and local analysis outputs are excluded from Git by `.gitignore`.
+Download the ZIP archive locally and keep it under `data/raw/`. You can pass the ZIP directly to the scripts; manual extraction is not required. Raw and processed respondent-level data are excluded from Git.
 
-Do not commit the CDC source file, patient-level exports, private data or secrets. See [data/README.md](data/README.md) for handling instructions and [docs/RESEARCH-PLAN.md](docs/RESEARCH-PLAN.md) for the analysis plan.
+- [Dataset handling guide](data/README.md)
+- [Initial dataset audit](docs/DATA-AUDIT-2025.md)
+- [Preprocessing report and recoding rules](docs/PREPARATION-2025.md)
+- [Research plan](docs/RESEARCH-PLAN.md)
+
+### Reproduce the data preparation
+
+```bash
+python -m pip install -r requirements-research.txt
+python scripts/audit_brfss.py --input data/raw/LLCP2025XPT.zip
+python scripts/prepare_brfss.py --input data/raw/LLCP2025XPT.zip
+```
+
+The preparation script produces a local compressed analysis file at `data/processed/brfss2025_stroke_history_analysis.csv.gz` and aggregate preparation profile. The respondent-level output is not stored in GitHub.
+
+Run preprocessing tests:
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m pytest -q
+```
+
+## Initial cohort definition
+
+Only `CVDSTRK3` responses coded 1 (Yes) and 2 (No) are retained for binary classification. Codes 7 (Don't know/Not sure), 9 (Refused), and blank responses are excluded from the outcome cohort. Unknown/refused predictor values remain missing; the preparation step does not impute them.
+
+The initial valid-outcome cohort has 354,950 records: 16,353 Yes and 338,597 No. The class ratio is approximately 20.7 to 1. The prepared extract retains the final survey weight (`_LLCPWT`), stratum (`_STSTR`), and primary sampling unit (`_PSU`) separately from model predictors.
 
 ## Planned research workflow
 
-1. **Dataset inspection:** verify the CDC codebook, outcome definition, field names, survey weights, strata and primary sampling units.
-2. **Data quality and EDA:** assess record counts, missingness, duplicates, coding, distributions and outcome prevalence.
-3. **Preprocessing:** build documented, reproducible transformations without treating unknown/refused responses as negative responses.
+1. **Data quality and EDA:** profile missingness, response distributions, survey-weighted prevalence, and feature relationships.
+2. **Feature rationale:** confirm a defensible predictor set and consider possible temporal ambiguity in self-reported diagnoses.
+3. **Survey-aware validation:** specify how weights, strata, and PSUs inform descriptive estimates and evaluation.
 4. **Modelling:** establish a Logistic Regression baseline, then compare appropriate tree-based models.
-5. **Evaluation:** assess recall/sensitivity, specificity, precision, F1, precision-recall AUC, ROC-AUC and calibration. Account for class imbalance and the survey design.
-6. **Explainability:** add SHAP only after selecting and validating a model; explanations describe model behaviour, not medical causation.
-7. **Application integration:** connect the trained, versioned model to the API and clearly communicate the research outcome and limitations.
+5. **Evaluation:** report sensitivity/recall, specificity, precision, F1, PR-AUC, ROC-AUC, calibration, and confusion matrix. Accuracy alone is insufficient.
+6. **Explainability:** add SHAP only after selecting and validating a model; explanations describe model behaviour, not causality.
+7. **Application integration:** connect the trained, versioned model to the API and communicate the study limitations.
 
 ## Technology
 
 - Python
 - FastAPI and Uvicorn
 - HTML5, Bootstrap 5 and JavaScript
-- Planned: pandas, NumPy, scikit-learn, a suitable survey-analysis package and SHAP (selected versions will be pinned after the analysis environment is established)
+- Research pipeline: pandas; scikit-learn and survey-analysis tooling to be added after the validation design is specified
 
 ## Run the current prototype
 
@@ -98,11 +126,6 @@ The commands below run the existing demonstration only; they do not train a mode
 - A US survey does not establish performance or clinical suitability in Nigeria.
 - Do not enter real patient-identifiable information into the prototype.
 - Outputs are for academic research and demonstration, not diagnosis, treatment or medical advice.
-
-## Project documentation
-
-- [Research plan](docs/RESEARCH-PLAN.md)
-- [Dataset handling guide](data/README.md)
 
 ## Author
 
