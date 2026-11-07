@@ -69,9 +69,8 @@ The detailed feature rationale and validation plan are documented in FEATURE-SEL
 
 Start with transparent baselines and add complexity only when justified:
 
-- Majority-class baseline.
-- Logistic Regression as an interpretable baseline.
-- Random Forest as a non-linear ensemble comparison.
+- Majority-class reference and weighted Logistic Regression comparisons have been fitted on the prespecified outer holdout; development-only out-of-fold predictions selected decision thresholds.
+- Random Forest remains the next model comparison.
 
 Use reproducible seeds, keep preprocessing inside each fold, and record package versions. Start with survey weights and no class rebalancing; compare any class weighting or resampling only as a training-fold sensitivity analysis.
 
@@ -109,7 +108,7 @@ Do not use real identifiable patient data. Do not collect patient information in
 
 ## 12. Current status
 
-The repository contains an early FastAPI/HTML prototype, a research plan, data audit, full-sample preparation script, EDA script, feature-selection/validation plan, survey-aware fold utility and unit tests. No machine-learning model has been trained or evaluated yet. SHAP explanations and clinical evaluation have not been implemented.
+The repository contains an early FastAPI/HTML prototype, full-sample preparation and EDA scripts, prespecified feature/validation design, tested survey-aware fold utility, and an initial weighted Logistic Regression comparison. The baseline report records weighted/unweighted metrics and explicitly notes that no Random Forest, design-based confidence interval for predictive performance, SHAP explanation, or clinical validation has been completed.
 
 ## Research integrity note
 
