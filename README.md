@@ -12,7 +12,9 @@ This repository contains an early application prototype and an emerging research
 - The current `app.py` uses a hand-written scoring formula, not a trained machine-learning model.
 - The UI collects some variables that the current scoring formula does not use.
 - The CDC BRFSS 2025 codebook and dataset have been inspected.
-- A reproducible data audit and preprocessing script have been added, with tests for the outcome and predictor recoding rules.
+- A reproducible data audit and full-sample preparation script have been added.
+- The prepared extract retains all 356,158 respondents; 1,208 non-binary/missing stroke outcomes remain missing and are excluded only from binary-model fitting.
+- The initial eight-feature set and survey-aware validation procedure are documented, with a fold-assignment helper and unit tests.
 - No model has been trained or evaluated; SHAP/LIME explanations and clinical evaluation have not been implemented.
 
 The prototype's current output must not be interpreted as a medically meaningful probability or recommendation.
@@ -33,6 +35,8 @@ Download the ZIP archive locally and keep it under `data/raw/`. You can pass the
 - [Dataset handling guide](data/README.md)
 - [Initial dataset audit](docs/DATA-AUDIT-2025.md)
 - [Preprocessing report and recoding rules](docs/PREPARATION-2025.md)
+- [EDA report](docs/EDA-2025.md)
+- [Feature selection and survey-aware validation](docs/FEATURE-SELECTION-VALIDATION.md)
 - [Research plan](docs/RESEARCH-PLAN.md)
 
 ### Reproduce the data preparation
@@ -41,9 +45,10 @@ Download the ZIP archive locally and keep it under `data/raw/`. You can pass the
 python -m pip install -r requirements-research.txt
 python scripts/audit_brfss.py --input data/raw/LLCP2025XPT.zip
 python scripts/prepare_brfss.py --input data/raw/LLCP2025XPT.zip
+python scripts/eda_brfss.py --input data/processed/brfss2025_stroke_history_analysis.csv.gz
 ```
 
-The preparation script produces a local compressed analysis file at `data/processed/brfss2025_stroke_history_analysis.csv.gz` and aggregate preparation profile. The respondent-level output is not stored in GitHub.
+The preparation script produces a local compressed analysis file at `data/processed/brfss2025_stroke_history_analysis.csv.gz` and aggregate preparation profile. It preserves the full 356,158-row source sample; only the 354,950 valid Yes/No outcome records are eligible for binary modelling. The respondent-level output is not stored in GitHub.
 
 Run preprocessing tests:
 
