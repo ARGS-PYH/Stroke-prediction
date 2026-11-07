@@ -40,7 +40,7 @@ The full file preserves the CDC final weight (_LLCPWT), stratum (_STSTR) and PSU
 
 The initial prespecified candidate set contains eight fields:
 
-- Age (_AGE80)
+- Age (_AGE80; numeric single-year age 18–79, with 80 top-coded as 80 or older)
 - Sex (SEXVAR)
 - Hypertension (_RFHYPE6)
 - History of heart attack or coronary heart disease (_MICHD)
@@ -57,13 +57,13 @@ Survey weights, strata, PSUs, state identifiers and the stroke outcome itself ar
 
 The 2025 BRFSS complex-sampling instructions identify _LLCPWT as the final respondent weight, _STSTR as the stratum and _PSU as the primary sampling unit. The codebook describes _PSU as the annual sequence number. The current prepared file has 2,090 strata, 356,158 unique nested stratum/PSU units and 94 strata with only one respondent/PSU.
 
-The validation helper scripts/survey_cv.py randomly partitions PSU units into folds separately within each _STSTR stratum. The outcome is not used to create the folds. It also calculates inverse fold-assignment adjustments to combine with the BRFSS weights during model fitting and validation.
+The validation helper scripts/survey_cv.py randomly partitions respondent-level PSU units separately within each _STSTR stratum. In this 2025 file, each (stratum, PSU) pair identifies one respondent. The outcome is not used to create folds. The randomized starting offset gives each record marginal probability 1/K of assignment to any specified fold; the helper applies inverse-probability factors K for held-out weights and K/(K-1) for training weights before combining them with _LLCPWT.
 
 The planned sequence is a five-fold outer assignment: one fold is reserved as a final approximately 20% holdout, and the remaining four folds form the development set. Four additional stratum-wise folds within that development set are used for model selection. The final holdout is not used to tune models or thresholds.
 
 Singleton strata must not be silently discarded. CDC's 2025 R example uses the survey package and sets options(survey.lonely.psu = "adjust") for variance estimation. Weighted point estimates and design-based uncertainty estimates will be distinguished in the final report.
 
-The detailed plan and code are documented in FEATURE-SELECTION-VALIDATION.md.
+The detailed feature rationale and validation plan are documented in FEATURE-SELECTION-VALIDATION.md. The initial age summaries use the released _AGE80 variable, where 80 represents 80 or older.
 
 ## 7. Candidate modelling workflow
 
