@@ -77,7 +77,7 @@ The first Logistic Regression comparison is documented in [the baseline report](
 
 1. **Data quality and EDA:** profile missingness, response distributions, survey-weighted prevalence, and feature relationships.
 2. **Feature rationale and validation design:** completed and documented; the primary eight features, demographic baseline, CHD/MI sensitivity model, and stratum-wise holdout procedure are prespecified.
-3. **Modelling:** fit the weighted Logistic Regression baseline, then compare an appropriately weighted Random Forest.
+3. **Modelling:** weighted Logistic Regression baseline completed; next compare an appropriately weighted Random Forest.
 5. **Evaluation:** report sensitivity/recall, specificity, precision, F1, PR-AUC, ROC-AUC, calibration, and confusion matrix. Accuracy alone is insufficient.
 6. **Explainability:** add SHAP only after selecting and validating a model; explanations describe model behaviour, not causality.
 7. **Application integration:** connect the trained, versioned model to the API and communicate the study limitations.
