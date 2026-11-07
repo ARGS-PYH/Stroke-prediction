@@ -79,11 +79,16 @@ This follows survey cross-validation guidance: form folds in a way that respects
 
 The 2025 file has **2,090 strata**, including **94 strata with only one respondent/PSU**. Singleton strata are not to be silently discarded or treated as if their fold assignment were deterministic; the randomized offset gives each such respondent the same marginal `1/K` chance of entering a specified fold. CDC's 2025 R example uses `options(survey.lonely.psu = "adjust")` for variance estimation. We will follow CDC's documented singleton-PSU handling for design-based descriptive estimates and explicitly document the variance procedure used for any held-out performance intervals.
 
-## 7. Model-fitting and evaluation sequence
+## 7. Initial Logistic Regression baseline
 
-1. Majority-class baseline (always predicts no reported prior stroke).
-2. Weighted Logistic Regression baseline.
-3. Weighted Random Forest comparison.
+The first weighted Logistic Regression comparison is documented in [LOGISTIC-BASELINE-2025.md](LOGISTIC-BASELINE-2025.md). The model uses a spline transformation for the top-coded age field, median BMI imputation with a missingness indicator, and one-hot encoding for nominal categorical fields. Unknown/refused binary fields are represented as a separate missing category. All preprocessing is fitted within training folds.
+
+The outer holdout remains untouched while the decision threshold is selected by maximizing weighted Youden's J on four-fold development-only out-of-fold predictions. Regularization C is fixed at 1.0 for this initial baseline; it has not been tuned. Both 0.5 and the development-selected threshold are reported. The baseline does not use SMOTE, class weights, or class resampling.
+
+## 8. Model-fitting and evaluation sequence
+
+1. Majority-class reference (always predicts no reported prior stroke) and weighted Logistic Regression baseline — initial comparison completed.
+2. Weighted Random Forest comparison — next planned model.
 
 Start with the original survey weights (combined with fold-adjustment weights) and no class rebalancing. Normalize training weights to a stable scale if required by the estimator; preserve relative weights. Do not pass the survey weights, strata, or PSU identifiers into the feature matrix.
 
@@ -102,7 +107,7 @@ Accuracy is supplementary only. Report a threshold of 0.5 and, if another operat
 
 Design-based confidence intervals for performance metrics are a separate requirement; weighted point estimates alone must not be described as design-based inference. They will be calculated using the survey design, singleton-PSU handling, and a documented variance procedure before making population-level uncertainty claims.
 
-## 8. Interpretation limits
+## 9. Interpretation limits
 
 - The outcome is self-reported prior stroke history, not future stroke incidence.
 - Diagnoses and behaviours are measured at survey time; their temporal order relative to a past stroke is unknown.
@@ -110,7 +115,7 @@ Design-based confidence intervals for performance metrics are a separate require
 - BRFSS is a US adult telephone survey. Its performance results do not validate use in Nigeria.
 - No result from this academic analysis is a clinical diagnosis, medical advice, or personal forecast of future stroke.
 
-## 9. References and source documents
+## 10. References and source documents
 
 - CDC, [2025 BRFSS annual data and documentation](https://www.cdc.gov/brfss/annual_data/2025/annual_2025.html).
 - CDC, [Complex Sampling Weights and Preparing 2025 BRFSS Module Data for Analysis](https://www.cdc.gov/brfss/annual_data/2025/pdf/Complex-Sampling-Weights-and-Preparing-Module-Data-for-Analysis-2025-508.pdf).
