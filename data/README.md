@@ -5,48 +5,56 @@ The primary research dataset is the CDC 2025 Behavioral Risk Factor Surveillance
 - Official data page: https://www.cdc.gov/brfss/annual_data/2025/annual_2025.html
 - XPT archive: https://www.cdc.gov/brfss/annual_data/2025/files/LLCP2025XPT.zip
 - Official codebook: https://www.cdc.gov/brfss/annual_data/2025/zip/codebook25_llcp-v2-508.zip
+- Complex sampling guidance: https://www.cdc.gov/brfss/annual_data/2025/pdf/Complex-Sampling-Weights-and-Preparing-Module-Data-for-Analysis-2025-508.pdf
 
 ## Local layout
 
 Keep the original ZIP archive locally:
 
-```text
+\`\`\`text
 data/
 └── raw/
     └── LLCP2025XPT.zip
-```
+\`\`\`
 
-Both scripts accept the ZIP archive directly; you do not need to extract it yourself.
+The scripts accept the ZIP archive directly; manual extraction is not required.
 
-## Run the data audit
+## Prepare the full sample
 
-```bash
+\`\`\`bash
 python -m pip install -r requirements-research.txt
-python scripts/audit_brfss.py --input data/raw/LLCP2025XPT.zip
-```
-
-The audit script reads the XPT in chunks and writes aggregate summaries to `reports/generated/`. It does not write respondent-level rows.
-
-## Prepare the analysis extract
-
-```bash
 python scripts/prepare_brfss.py --input data/raw/LLCP2025XPT.zip
-```
+\`\`\`
 
-This creates `data/processed/brfss2025_stroke_history_analysis.csv.gz` plus an aggregate `preparation_profile.json`. The analysis extract is respondent-level data and stays local; the script does not impute missing predictors or resample classes. It preserves survey weights, strata, and PSUs as separate metadata columns.
+The preparation script retains all 356,158 source respondents in \`data/processed/brfss2025_stroke_history_analysis.csv.gz\`. The 1,208 unknown/refused/blank stroke-history outcomes remain missing in \`stroke_history\`; only rows coded Yes or No are eligible for binary-model fitting and evaluation.
 
-The CDC ZIP member currently has a trailing space in its internal XPT filename; the scripts normalize the name when extracting to a temporary directory.
+Keeping the full source file allows the survey design variables to be defined before subsetting to the valid outcome domain. The output is respondent-level research data and stays local.
 
-## Run exploratory data analysis
+## Exploratory data analysis
 
-After preparing the analysis extract, run:
-
-```bash
+\`\`\`bash
 python -m pip install -r requirements-research.txt
 python scripts/eda_brfss.py --input data/processed/brfss2025_stroke_history_analysis.csv.gz
-```
+\`\`\`
 
-The EDA script writes aggregate subgroup tables, missingness summaries, charts, and a JSON summary under `reports/generated/`. It does not write respondent-level rows. See the [BRFSS 2025 EDA report](../docs/EDA-2025.md) for the first-pass findings and survey-design limitations.
+The EDA script loads the full prepared file for survey-design diagnostics, then filters to valid Yes/No outcomes for the reported-stroke descriptive tables and charts. It writes aggregate outputs to \`reports/generated/\`.
+
+## Survey-aware validation folds
+
+The helper \`scripts/survey_cv.py\` assigns random folds separately within each \`survey_stratum\` and checks that a PSU is not split across folds. It deliberately does not use the stroke outcome when assigning folds.
+
+\`\`\`python
+from scripts.survey_cv import assign_survey_folds, fold_adjusted_weights
+
+folds = assign_survey_folds(prepared_data, n_splits=5, random_state=42)
+train_weights, test_weights = fold_adjusted_weights(
+    prepared_data, folds, heldout_fold=0
+)
+\`\`\`
+
+Only after assigning folds should the modelling code subset to valid stroke-history outcomes. The fold-adjusted weights are multiplied by \`survey_weight\` for weighted training and evaluation.
+
+See [feature selection and validation design](../docs/FEATURE-SELECTION-VALIDATION.md).
 
 ## Important handling rules
 
@@ -60,6 +68,6 @@ The EDA script writes aggregate subgroup tables, missingness summaries, charts, 
 
 ## Research scope
 
-The dataset is a cross-sectional US health survey. The outcome `CVDSTRK3` concerns self-reported history of stroke, not future stroke incidence. Results should not be presented as clinical diagnosis or as a validated prediction of an individual's future stroke.
+The dataset is a cross-sectional US health survey. The outcome \`CVDSTRK3\` concerns self-reported history of stroke, not future stroke incidence. Results should not be presented as clinical diagnosis or as a validated prediction of an individual's future stroke.
 
-See [the research plan](../docs/RESEARCH-PLAN.md), [the initial data audit](../docs/DATA-AUDIT-2025.md), and [the preparation report](../docs/PREPARATION-2025.md).
+See the [research plan](../docs/RESEARCH-PLAN.md), [initial dataset audit](../docs/DATA-AUDIT-2025.md), [preparation report](../docs/PREPARATION-2025.md), and [EDA report](../docs/EDA-2025.md).
