@@ -11,48 +11,48 @@ The primary research dataset is the CDC 2025 Behavioral Risk Factor Surveillance
 
 Keep the original ZIP archive locally:
 
-\`\`\`text
+```text
 data/
 └── raw/
     └── LLCP2025XPT.zip
-\`\`\`
+```
 
 The scripts accept the ZIP archive directly; manual extraction is not required.
 
 ## Prepare the full sample
 
-\`\`\`bash
+```bash
 python -m pip install -r requirements-research.txt
 python scripts/prepare_brfss.py --input data/raw/LLCP2025XPT.zip
-\`\`\`
+```
 
-The preparation script retains all 356,158 source respondents in \`data/processed/brfss2025_stroke_history_analysis.csv.gz\`. The 1,208 unknown/refused/blank stroke-history outcomes remain missing in \`stroke_history\`; only rows coded Yes or No are eligible for binary-model fitting and evaluation.
+The preparation script retains all 356,158 source respondents in `data/processed/brfss2025_stroke_history_analysis.csv.gz`. The 1,208 unknown/refused/blank stroke-history outcomes remain missing in `stroke_history`; only rows coded Yes or No are eligible for binary-model fitting and evaluation.
 
 Keeping the full source file allows the survey design variables to be defined before subsetting to the valid outcome domain. The output is respondent-level research data and stays local.
 
 ## Exploratory data analysis
 
-\`\`\`bash
+```bash
 python -m pip install -r requirements-research.txt
 python scripts/eda_brfss.py --input data/processed/brfss2025_stroke_history_analysis.csv.gz
-\`\`\`
+```
 
-The EDA script loads the full prepared file for survey-design diagnostics, then filters to valid Yes/No outcomes for the reported-stroke descriptive tables and charts. It writes aggregate outputs to \`reports/generated/\`.
+The EDA script loads the full prepared file for survey-design diagnostics, then filters to valid Yes/No outcomes for the reported-stroke descriptive tables and charts. It writes aggregate outputs to `reports/generated/`.
 
 ## Survey-aware validation folds
 
-The helper \`scripts/survey_cv.py\` assigns random folds separately within each \`survey_stratum\` and checks that a PSU is not split across folds. It deliberately does not use the stroke outcome when assigning folds.
+The helper `scripts/survey_cv.py` assigns random folds separately within each `survey_stratum` and checks that a PSU is not split across folds. It deliberately does not use the stroke outcome when assigning folds.
 
-\`\`\`python
+```python
 from scripts.survey_cv import assign_survey_folds, fold_adjusted_weights
 
 folds = assign_survey_folds(prepared_data, n_splits=5, random_state=42)
 train_weights, test_weights = fold_adjusted_weights(
     prepared_data, folds, heldout_fold=0
 )
-\`\`\`
+```
 
-Only after assigning folds should the modelling code subset to valid stroke-history outcomes. The fold-adjusted weights are multiplied by \`survey_weight\` for weighted training and evaluation.
+Only after assigning folds should the modelling code subset to valid stroke-history outcomes. The fold-adjusted weights are multiplied by `survey_weight` for weighted training and evaluation.
 
 See [feature selection and validation design](../docs/FEATURE-SELECTION-VALIDATION.md).
 
@@ -68,6 +68,6 @@ See [feature selection and validation design](../docs/FEATURE-SELECTION-VALIDATI
 
 ## Research scope
 
-The dataset is a cross-sectional US health survey. The outcome \`CVDSTRK3\` concerns self-reported history of stroke, not future stroke incidence. Results should not be presented as clinical diagnosis or as a validated prediction of an individual's future stroke.
+The dataset is a cross-sectional US health survey. The outcome `CVDSTRK3` concerns self-reported history of stroke, not future stroke incidence. Results should not be presented as clinical diagnosis or as a validated prediction of an individual's future stroke.
 
 See the [research plan](../docs/RESEARCH-PLAN.md), [initial dataset audit](../docs/DATA-AUDIT-2025.md), [preparation report](../docs/PREPARATION-2025.md), and [EDA report](../docs/EDA-2025.md).
