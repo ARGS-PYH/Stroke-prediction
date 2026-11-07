@@ -2,7 +2,8 @@
 """Create a reproducible BRFSS 2025 stroke-history analysis extract.
 
 The respondent-level output is local research data and must not be committed.
-Unknown/refused/missing outcome records are excluded. Missing predictors are
+Unknown/refused/missing outcome records are preserved with a missing target;
+they are excluded only from binary-model fitting. Missing predictors are
 preserved for later train-only imputation. Survey design fields are retained
 separately and are not ordinary model predictors.
 """
@@ -37,6 +38,11 @@ SMOKING = {
     3: "Former smoker",
     4: "Never smoked",
 }
+
+PREDICTOR_FIELDS = [
+    "age_years_capped_at_80", "sex", "hypertension", "chd_or_mi_history",
+    "diabetes_status", "bmi", "smoking_status", "physical_activity_30d",
+]
 CATEGORY_FIELDS = [
     "sex", "hypertension", "chd_or_mi_history", "diabetes_status",
     "smoking_status", "physical_activity_30d",
@@ -338,7 +344,5 @@ def main() -> None:
     print("Profile:", args.output_dir / "preparation_profile.json")
 
 
-if __name__ == "__main__":
-    main()
 if __name__ == "__main__":
     main()
