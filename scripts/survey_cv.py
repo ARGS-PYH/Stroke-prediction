@@ -1,8 +1,4 @@
-"""Stratum-aware fold assignment utilities for BRFSS respondent-level CV.
-
-Fold allocation is an SRS-style random partition performed separately within
-each official BRFSS stratum. Outcome labels are not used to assign folds.
-"""
+"""Stratum-aware fold assignment utilities for BRFSS respondent-level CV."""
 from __future__ import annotations
 
 import numpy as np
@@ -17,19 +13,22 @@ def assign_survey_folds(
     n_splits: int = 5,
     random_state: int = 42,
 ) -> np.ndarray:
-    """Assign every row to one fold, balancing counts within each stratum.
+    """Assign respondent-level PSU units to folds separately within _STSTR.
 
-    Respondents are randomly partitioned separately inside each _STSTR
-    stratum. _PSU is checked as the design-unit identifier nested in stratum.
-    The target is deliberately not read or used when assigning folds.
+    In the 2025 LLCP file, _PSU is the annual sequence number and each
+    (survey_stratum, survey_psu) pair identifies one respondent. The target
+    is deliberately not inspected when assigning folds.
     """
     if n_splits < 2:
         raise ValueError("n_splits must be at least 2")
     missing = REQUIRED - set(frame.columns)
     if missing:
         raise ValueError(f"Missing required columns: {sorted(missing)}")
-    if frame["survey_stratum"].isna().any() or frame["survey_psu"].isna().any():
-        raise ValueError("Survey stratum and PSU fields must be present for every row")
+    if frame[["survey_stratum", "survey_psu", "survey_weight"]].isna().any().any():
+        raise ValueError("Stratum, PSU, and survey weight must be present")
+    weights = frame["survey_weight"].to_numpy(dtype=float)
+    if not np.isfinite(weights).all() or np.any(weights <= 0):
+        raise ValueError("Survey weights must be finite and positive")
     if frame.duplicated(["survey_stratum", "survey_psu"]).any():
         raise ValueError("The (survey_stratum, survey_psu) design-unit key is not unique")
 
@@ -41,8 +40,7 @@ def assign_survey_folds(
         positions = np.flatnonzero(strata == stratum)
         shuffled = rng.permutation(positions)
         offset = int(rng.integers(0, n_splits))
-        assignment = (np.arange(len(shuffled)) + offset) % n_splits
-        folds[shuffled] = assignment.astype(np.int16)
+        folds[shuffled] = (np.arange(len(shuffled)) + offset) % n_splits
 
     if (folds < 0).any():
         raise RuntimeError("Some respondents were not assigned a fold")
@@ -55,39 +53,35 @@ def fold_adjusted_weights(
     *,
     heldout_fold: int,
 ) -> tuple[np.ndarray, np.ndarray]:
-    """Return training and held-out weights adjusted for fold assignment.
+    """Adjust final BRFSS weights for the randomized second-phase fold split.
 
-    For each stratum h, p_h is the realised fraction assigned to the held-out
-    fold. Fold-adjusted weights are the final BRFSS weight divided by 1-p_h
-    for training records and by p_h for held-out records. The arrays contain
-    zeros for rows outside the corresponding partition.
+    The random starting offset makes each respondent's marginal probability
+    of assignment to any specified fold exactly 1/K, even when a stratum has
+    a singleton PSU or its realised fold counts are uneven. The training
+    inclusion probability is (K-1)/K. Therefore use base_weight*K for the
+    held-out fold and base_weight*K/(K-1) for training. These arrays are zero
+    outside their respective partitions.
     """
-    if len(frame) != len(folds):
-        raise ValueError("folds must have one entry for every data row")
-    if heldout_fold not in set(np.asarray(folds).tolist()):
+    folds = np.asarray(folds)
+    if folds.ndim != 1 or len(frame) != len(folds):
+        raise ValueError("folds must be a one-dimensional array with one entry per row")
+    unique_folds = np.unique(folds)
+    if len(unique_folds) < 2:
+        raise ValueError("At least two folds are required")
+    if heldout_fold not in unique_folds:
         raise ValueError("heldout_fold is not present in folds")
+    if not REQUIRED.issubset(frame.columns):
+        raise ValueError(f"Missing required columns: {sorted(REQUIRED - set(frame.columns))}")
 
-    fold_series = pd.Series(np.asarray(folds), index=frame.index)
-    stratum_sizes = frame.groupby("survey_stratum", sort=False).size()
-    heldout_sizes = (
-        frame.loc[fold_series.eq(heldout_fold)]
-        .groupby("survey_stratum", sort=False)
-        .size()
-    )
-    probability = (heldout_sizes / stratum_sizes).reindex(
-        frame["survey_stratum"].to_numpy()
-    ).fillna(0.0).to_numpy(dtype=float)
     base_weights = frame["survey_weight"].to_numpy(dtype=float)
-    is_test = np.asarray(folds) == heldout_fold
+    if not np.isfinite(base_weights).all() or np.any(base_weights <= 0):
+        raise ValueError("Survey weights must be finite and positive")
 
+    k = len(unique_folds)
+    is_test = folds == heldout_fold
+    is_train = ~is_test
     train_weights = np.zeros(len(frame), dtype=float)
     test_weights = np.zeros(len(frame), dtype=float)
-    train_mask = ~is_test
-    if np.any(train_mask & (probability >= 1)):
-        raise RuntimeError("A training respondent is in a stratum wholly held out")
-    if np.any(is_test & (probability <= 0)):
-        raise RuntimeError("A test respondent has zero fold-inclusion probability")
-
-    train_weights[train_mask] = base_weights[train_mask] / (1.0 - probability[train_mask])
-    test_weights[is_test] = base_weights[is_test] / probability[is_test]
+    train_weights[is_train] = base_weights[is_train] * k / (k - 1)
+    test_weights[is_test] = base_weights[is_test] * k
     return train_weights, test_weights
