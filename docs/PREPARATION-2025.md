@@ -40,7 +40,7 @@ The preparation script now writes all source respondents to:
 | Source variable | Output field | Preparation rule |
 |---|---|---|
 | `CVDSTRK3` | `stroke_history` | 1 -> 1 (Yes); 2 -> 0 (No); 7, 9 and blank remain missing |
-| `_AGE80` | `age_years_capped_at_80` | Keep numeric age; 80 represents age 80 or older |
+| `_AGE80` | `age_years_capped_at_80` | Keep numeric single-year ages 18–79; 80 represents age 80 or older (top-coded) |
 | `SEXVAR` | `sex` | 1 -> Male; 2 -> Female |
 | `_RFHYPE6` | `hypertension` | 1 -> 0 (No); 2 -> 1 (Yes); 9 -> missing |
 | `_MICHD` | `chd_or_mi_history` | 1 -> 1 (reported MI or CHD); 2 -> 0; blank -> missing |
@@ -67,7 +67,7 @@ Unknown/refused predictor responses are not silently coded as “No.” No predi
 | Age | 0 | 0.000% |
 | Sex | 0 | 0.000% |
 
-Observed BMI values range from 12.02 to 98.43. No records are removed solely because of the observed BMI range. Age values range from 18 to 80, with 80 top-coded (80+).
+Observed BMI values range from 12.02 to 98.43. No records are removed solely because of the observed BMI range. Raw `_AGE80` values range from 18 to 80. Values 18–79 are single-year ages; 80 is top-coded and represents age 80 or older.
 
 ## Survey design fields
 
