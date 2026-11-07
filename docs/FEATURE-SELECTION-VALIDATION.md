@@ -4,7 +4,7 @@
 
 ## 1. Task definition
 
-The response is the BRFSS 2025 item \`CVDSTRK3\`: whether the respondent reports having ever been told by a health professional that they had a stroke. This is a cross-sectional classification task for **reported prior stroke history**. It is not a model of future stroke incidence.
+The response is the BRFSS 2025 item `CVDSTRK3`: whether the respondent reports having ever been told by a health professional that they had a stroke. This is a cross-sectional classification task for **reported prior stroke history**. It is not a model of future stroke incidence.
 
 A predictor may be associated with reported prior stroke without being known to have occurred before the stroke. Model explanations and coefficient estimates must therefore not be interpreted as causal effects or future-risk factors.
 
@@ -14,14 +14,14 @@ The initial feature set is based on the question wording, codebook definitions, 
 
 | Prepared field | BRFSS source | Type | Rationale and treatment |
 |---|---|---|---|
-| \`age_years_capped_at_80\` | \`_AGE80\` | Numeric | Strong descriptive gradient in EDA. The value 80 is top-coded (80 years or older); retain this limitation. |
-| \`sex\` | \`SEXVAR\` | Categorical | Core demographic descriptor; evaluate model performance by sex as well as overall. |
-| \`hypertension\` | \`_RFHYPE6\` | Binary categorical | Self-reported high blood pressure status. Preserve unknown/refused as missing. |
-| \`chd_or_mi_history\` | \`_MICHD\` | Binary categorical | Self-reported coronary heart disease or myocardial infarction history. Retain in the full model, then run the sensitivity comparison described below. |
-| \`diabetes_status\` | \`DIABETE4\` | Categorical | Retain diabetes, pregnancy-only diabetes, no diabetes, and prediabetes/borderline as distinct categories. Do not collapse pregnancy-only or prediabetes into diabetes/no diabetes. |
-| \`bmi\` | \`_BMI5\` | Numeric | Convert the stored value by dividing by 100. Treat blank and 9999 as missing. |
-| \`smoking_status\` | \`_SMOKER3\` | Categorical | Retain current every-day, current some-days, former, and never-smoked categories. Do not treat these as equally spaced numeric values. |
-| \`physical_activity_30d\` | \`EXERANY2\` | Binary categorical | Indicates any leisure-time physical activity in the past 30 days (other than regular work), not total activity or clinical fitness. |
+| `age_years_capped_at_80` | `_AGE80` | Numeric | Strong descriptive gradient in EDA. The value 80 is top-coded (80 years or older); retain this limitation. |
+| `sex` | `SEXVAR` | Categorical | Core demographic descriptor; evaluate model performance by sex as well as overall. |
+| `hypertension` | `_RFHYPE6` | Binary categorical | Self-reported high blood pressure status. Preserve unknown/refused as missing. |
+| `chd_or_mi_history` | `_MICHD` | Binary categorical | Self-reported coronary heart disease or myocardial infarction history. Retain in the full model, then run the sensitivity comparison described below. |
+| `diabetes_status` | `DIABETE4` | Categorical | Retain diabetes, pregnancy-only diabetes, no diabetes, and prediabetes/borderline as distinct categories. Do not collapse pregnancy-only or prediabetes into diabetes/no diabetes. |
+| `bmi` | `_BMI5` | Numeric | Convert the stored value by dividing by 100. Treat blank and 9999 as missing. |
+| `smoking_status` | `_SMOKER3` | Categorical | Retain current every-day, current some-days, former, and never-smoked categories. Do not treat these as equally spaced numeric values. |
+| `physical_activity_30d` | `EXERANY2` | Binary categorical | Indicates any leisure-time physical activity in the past 30 days (other than regular work), not total activity or clinical fitness. |
 
 ### Model comparisons
 
@@ -29,7 +29,7 @@ Use three prespecified comparisons:
 
 1. **Demographic baseline:** age and sex only.
 2. **Primary model:** all eight candidate features above.
-3. **Sensitivity model:** the primary model without \`chd_or_mi_history\`.
+3. **Sensitivity model:** the primary model without `chd_or_mi_history`.
 
 The sensitivity model matters because CHD/MI has the largest crude association in the EDA, but the data do not establish whether this diagnosis preceded or followed the reported stroke. If the primary model's apparent improvement largely disappears when this feature is removed, that limitation must be discussed.
 
@@ -37,9 +37,9 @@ Sex is included as a demographic predictor, but performance will also be examine
 
 ## 3. Variables deliberately not used as predictors
 
-- \`survey_weight\` (\`_LLCPWT\`) is an analysis weight, not a respondent health characteristic.
-- \`survey_stratum\` (\`_STSTR\`) and \`survey_psu\` (\`_PSU\`) describe the sampling design; they are used to construct validation folds and survey estimates, not as model features.
-- \`CVDSTRK3\` is the target and must never appear in the predictor matrix.
+- `survey_weight` (`_LLCPWT`) is an analysis weight, not a respondent health characteristic.
+- `survey_stratum` (`_STSTR`) and `survey_psu` (`_PSU`) describe the sampling design; they are used to construct validation folds and survey estimates, not as model features.
+- `CVDSTRK3` is the target and must never appear in the predictor matrix.
 - Record identifiers and state/geographic identifiers will not be included in the initial feature set. Geography may act as a proxy and is unnecessary for the stated individual-level classification task.
 
 Unknown, refused, and blank values must not be recoded as “No.”
@@ -58,26 +58,26 @@ The initial model will not apply oversampling or synthetic examples. The 20.7:1 
 
 ## 5. Full-sample preservation
 
-The prepared data file now retains all **356,158** source respondents. The 1,208 records with \`CVDSTRK3\` coded 7 (Don't know/Not sure), 9 (Refused), or blank have a missing \`stroke_history\` value rather than being deleted.
+The prepared data file now retains all **356,158** source respondents. The 1,208 records with `CVDSTRK3` coded 7 (Don't know/Not sure), 9 (Refused), or blank have a missing `stroke_history` value rather than being deleted.
 
 Only the **354,950** valid Yes/No records enter binary model fitting or classification metrics. Keeping the other source records in the prepared file allows survey design information to be retained before defining the valid-outcome domain. It avoids constructing a survey design only after dropping records with non-substantive outcome responses.
 
 ## 6. Survey-aware fold construction
 
-CDC documentation specifies \`_LLCPWT\` as the final weight, \`_STSTR\` as the sample-design stratum, and \`_PSU\` as the primary sampling unit. The codebook describes \`_PSU\` as equal to the annual sequence number. In this 2025 file, the \`(survey_stratum, survey_psu)\` key is unique for every respondent, and a small number of PSU identifier values are reused across different strata. Keep PSU identifiers nested within strata.
+CDC documentation specifies `_LLCPWT` as the final weight, `_STSTR` as the sample-design stratum, and `_PSU` as the primary sampling unit. The codebook describes `_PSU` as equal to the annual sequence number. In this 2025 file, the `(survey_stratum, survey_psu)` key is unique for every respondent, and a small number of PSU identifier values are reused across different strata. Keep PSU identifiers nested within strata.
 
-Use the helper in \`scripts/survey_cv.py\`:
+Use the helper in `scripts/survey_cv.py`:
 
-1. Randomly allocate respondents to five folds **separately inside each \`_STSTR\` stratum**. The target label is not used to assign folds.
+1. Randomly allocate respondents to five folds **separately inside each `_STSTR` stratum**. The target label is not used to assign folds.
 2. Keep all records from a PSU in the same fold. The helper checks that the stratum/PSU key is unique in this file, so this respondent-level PSU is not split between folds.
 3. Use one fold as the final approximately 20% holdout; use the other four folds for development.
 4. Within the development sample, create four new stratum-wise folds for model selection and hyperparameter tuning.
-5. For each training/validation partition, combine \`_LLCPWT\` with the inverse fold-assignment probability within each stratum. The helper \`fold_adjusted_weights\` calculates these second-phase adjustments.
+5. For each training/validation partition, combine `_LLCPWT` with the inverse fold-assignment probability within each stratum. The helper `fold_adjusted_weights` calculates these second-phase adjustments.
 6. Filter to valid Yes/No outcomes only after fold assignment. The fold construction itself therefore retains the full source sample structure.
 
 This follows survey cross-validation guidance: form folds in a way that respects the sampling strata and clusters, and use the sampling weights in both model fitting and test-error estimation. Because this BRFSS file has one record per stratum/PSU unit, the fold helper partitions those units within each official stratum.
 
-The 2025 file has **2,090 strata**, including **94 strata with only one respondent/PSU**. Singleton strata are not to be silently discarded. CDC's 2025 examples use the R \`survey\` package and set \`options(survey.lonely.psu = "adjust")\` when constructing survey estimates. We will use that adjustment for design-based variance estimation and document it.
+The 2025 file has **2,090 strata**, including **94 strata with only one respondent/PSU**. Singleton strata are not to be silently discarded. CDC's 2025 examples use the R `survey` package and set `options(survey.lonely.psu = "adjust")` when constructing survey estimates. We will use that adjustment for design-based variance estimation and document it.
 
 ## 7. Model-fitting and evaluation sequence
 
