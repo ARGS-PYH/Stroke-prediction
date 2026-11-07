@@ -76,14 +76,19 @@ def main() -> None:
         raise SystemExit(f"Prepared analysis file not found: {args.input}")
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
-    df = pd.read_csv(args.input, compression="infer", low_memory=False)
-    missing_fields = sorted(REQUIRED - set(df.columns))
+    all_df = pd.read_csv(args.input, compression="infer", low_memory=False)
+    missing_fields = sorted(REQUIRED - set(all_df.columns))
     if missing_fields:
         raise SystemExit("Missing required fields: " + ", ".join(missing_fields))
-    if not set(df.stroke_history.dropna().unique()).issubset({0, 1}):
+    if not set(all_df.stroke_history.dropna().unique()).issubset({0, 1}):
         raise SystemExit("stroke_history must contain only 0 and 1")
-    if df.survey_weight.isna().any() or df.survey_weight.le(0).any():
+    if all_df.survey_weight.isna().any() or all_df.survey_weight.le(0).any():
         raise SystemExit("Survey weights must be positive and non-missing")
+
+    # Keep the full file available for design diagnostics, then use the valid
+    # Yes/No outcome domain for descriptive classifier EDA.
+    source_respondent_rows = len(all_df)
+    df = all_df.loc[all_df.stroke_history.notna()].copy()
 
     df["age_band"] = pd.cut(
         df.age_years_capped_at_80, [17, 34, 44, 54, 64, 74, 80],
@@ -128,6 +133,8 @@ def main() -> None:
     strata_psu = df.groupby("survey_stratum").survey_psu.nunique()
     summary = {
         "dataset": "CDC BRFSS 2025 LLCP prepared valid Yes/No outcome cohort",
+        "source_respondent_rows": source_respondent_rows,
+        "outcome_missing_or_nonbinary_rows_preserved": source_respondent_rows - n,
         "respondents": n,
         "source_prepared_extract_columns": len(REQUIRED),
         "derived_eda_variables": ["age_band", "bmi_band"],
@@ -136,9 +143,15 @@ def main() -> None:
         "unweighted_yes_pct": 100 * yes_n / n,
         "weighted_yes_pct": weighted_yes_pct,
         "no_to_yes_ratio": no_n / yes_n,
-        "exact_duplicate_rows": int(df.duplicated().sum()),
-        "unique_strata": int(df.survey_stratum.nunique()),
-        "unique_psu_codes": int(df.survey_psu.nunique()),
+        "exact_duplicate_rows_full_source": int(all_df.duplicated().sum()),
+        "unique_strata_full_source": int(all_df.survey_stratum.nunique()),
+        "unique_psu_codes_full_source": int(all_df.survey_psu.nunique()),
+        "unique_stratum_psu_units_full_source": int(
+            all_df[["survey_stratum", "survey_psu"]].drop_duplicates().shape[0]
+        ),
+        "single_respondent_strata_full_source": int(
+            (all_df.groupby("survey_stratum").size() == 1).sum()
+        ),
         "single_psu_strata_after_outcome_filter": int((strata_psu == 1).sum()),
         "weight_min": float(df.survey_weight.min()),
         "weight_median": float(df.survey_weight.median()),
