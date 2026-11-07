@@ -10,11 +10,11 @@ A predictor may be associated with reported prior stroke without being known to 
 
 ## 2. Prespecified primary candidate features
 
-The initial feature set is based on the question wording, codebook definitions, completeness, and the first-pass EDA. It is not selected by searching for the smallest p-values or by ranking univariate associations.
+The initial feature set is based on the question wording, codebook definitions, completeness, and the first-pass EDA. It is not selected by searching for the smallest p-values or by ranking univariate associations. The raw `_AGE80` values were inspected in the XPT: ages 18–79 are represented as single-year values, and 80 is the top-coded value for age 80 or older. Codebook frequency tables also display grouped age ranges; those tables should not be confused with the raw numeric values.
 
 | Prepared field | BRFSS source | Type | Rationale and treatment |
 |---|---|---|---|
-| `age_years_capped_at_80` | `_AGE80` | Numeric | Strong descriptive gradient in EDA. The value 80 is top-coded (80 years or older); retain this limitation. |
+| `age_years_capped_at_80` | `_AGE80` | Numeric | Strong descriptive gradient in EDA. Raw values represent single-year ages from 18 through 79; 80 represents age 80 or older. Keep numeric initially, but examine non-linearity (for example, a spline or age-band sensitivity model) within training folds. |
 | `sex` | `SEXVAR` | Categorical | Core demographic descriptor; evaluate model performance by sex as well as overall. |
 | `hypertension` | `_RFHYPE6` | Binary categorical | Self-reported high blood pressure status. Preserve unknown/refused as missing. |
 | `chd_or_mi_history` | `_MICHD` | Binary categorical | Self-reported coronary heart disease or myocardial infarction history. Retain in the full model, then run the sensitivity comparison described below. |
@@ -69,15 +69,15 @@ CDC documentation specifies `_LLCPWT` as the final weight, `_STSTR` as the sampl
 Use the helper in `scripts/survey_cv.py`:
 
 1. Randomly allocate respondents to five folds **separately inside each `_STSTR` stratum**. The target label is not used to assign folds.
-2. Keep all records from a PSU in the same fold. The helper checks that the stratum/PSU key is unique in this file, so this respondent-level PSU is not split between folds.
+2. Treat each `(survey_stratum, survey_psu)` pair as a design unit. In the 2025 LLCP file, `_PSU` is the annual sequence number and every stratum/PSU pair identifies one respondent; there are no multi-respondent PSU groups to split across folds. The helper checks that the pair is unique.
 3. Use one fold as the final approximately 20% holdout; use the other four folds for development.
 4. Within the development sample, create four new stratum-wise folds for model selection and hyperparameter tuning.
-5. For each training/validation partition, combine `_LLCPWT` with the inverse fold-assignment probability within each stratum. The helper `fold_adjusted_weights` calculates these second-phase adjustments.
+5. Apply the inverse probability of the randomized second-phase fold assignment. Because the fold helper uses a random starting offset within each stratum, each respondent has marginal probability `1/K` of entering any specified fold, even when the realised number in a stratum is uneven or the stratum has one PSU. Multiply held-out weights by `K` and training weights by `K/(K-1)`; with five outer folds these factors are `5` and `1.25`. For four inner folds they are `4` and `4/3`. The helper `fold_adjusted_weights` implements these adjustments; it must not use the realised fold fraction within a stratum as an inclusion probability.
 6. Filter to valid Yes/No outcomes only after fold assignment. The fold construction itself therefore retains the full source sample structure.
 
-This follows survey cross-validation guidance: form folds in a way that respects the sampling strata and clusters, and use the sampling weights in both model fitting and test-error estimation. Because this BRFSS file has one record per stratum/PSU unit, the fold helper partitions those units within each official stratum.
+This follows survey cross-validation guidance: form folds in a way that respects sampling strata and PSU units, and use sampling weights in both model fitting and test-error estimation. More precisely, this is a reproducible analyst-defined second-phase validation split stratified by `_STSTR`; it is not an official CDC cross-validation recipe. Fold assignment is not stratified on the outcome, so class proportions may vary slightly between folds. We will report those fold-level outcome counts and weighted prevalences.
 
-The 2025 file has **2,090 strata**, including **94 strata with only one respondent/PSU**. Singleton strata are not to be silently discarded. CDC's 2025 examples use the R `survey` package and set `options(survey.lonely.psu = "adjust")` when constructing survey estimates. We will use that adjustment for design-based variance estimation and document it.
+The 2025 file has **2,090 strata**, including **94 strata with only one respondent/PSU**. Singleton strata are not to be silently discarded or treated as if their fold assignment were deterministic; the randomized offset gives each such respondent the same marginal `1/K` chance of entering a specified fold. CDC's 2025 R example uses `options(survey.lonely.psu = "adjust")` for variance estimation. We will follow CDC's documented singleton-PSU handling for design-based descriptive estimates and explicitly document the variance procedure used for any held-out performance intervals.
 
 ## 7. Model-fitting and evaluation sequence
 
