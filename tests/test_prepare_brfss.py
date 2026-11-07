@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from scripts.prepare_brfss import make_analysis_frame
+from scripts.prepare_brfss import make_analysis_frame, PREDICTOR_FIELDS
 
 
 def sample_chunk():
@@ -83,3 +83,10 @@ def test_unknown_predictor_codes_remain_missing_not_negative():
         "smoking_status", "physical_activity_30d",
     ]:
         assert pd.isna(cleaned.iloc[0][column]), column
+
+
+def test_preparation_declares_all_eight_model_predictors():
+    assert PREDICTOR_FIELDS == [
+        "age_years_capped_at_80", "sex", "hypertension", "chd_or_mi_history",
+        "diabetes_status", "bmi", "smoking_status", "physical_activity_30d",
+    ]
