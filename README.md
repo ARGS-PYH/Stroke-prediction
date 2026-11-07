@@ -14,7 +14,7 @@ This repository contains an early application prototype and an emerging research
 - The CDC BRFSS 2025 codebook and dataset have been inspected.
 - A reproducible data audit and full-sample preparation script have been added.
 - The prepared extract retains all 356,158 respondents; 1,208 non-binary/missing stroke outcomes remain missing and are excluded only from binary-model fitting.
-- The initial eight-feature set and survey-aware validation procedure are documented, with a fold-assignment helper and unit tests.
+- The initial eight-feature set and survey-aware validation procedure are documented, with a stratum-wise fold-assignment helper and tests for inverse-probability weight adjustments.
 - No model has been trained or evaluated; SHAP/LIME explanations and clinical evaluation have not been implemented.
 
 The prototype's current output must not be interpreted as a medically meaningful probability or recommendation.
@@ -75,9 +75,8 @@ No model has been trained. Survey-design standard errors and confidence interval
 ## Planned research workflow
 
 1. **Data quality and EDA:** profile missingness, response distributions, survey-weighted prevalence, and feature relationships.
-2. **Feature rationale:** confirm a defensible predictor set and consider possible temporal ambiguity in self-reported diagnoses.
-3. **Survey-aware validation:** specify how weights, strata, and PSUs inform descriptive estimates and evaluation.
-4. **Modelling:** establish a Logistic Regression baseline, then compare appropriate tree-based models.
+2. **Feature rationale and validation design:** completed and documented; the primary eight features, demographic baseline, CHD/MI sensitivity model, and stratum-wise holdout procedure are prespecified.
+3. **Modelling:** fit the weighted Logistic Regression baseline, then compare an appropriately weighted Random Forest.
 5. **Evaluation:** report sensitivity/recall, specificity, precision, F1, PR-AUC, ROC-AUC, calibration, and confusion matrix. Accuracy alone is insufficient.
 6. **Explainability:** add SHAP only after selecting and validating a model; explanations describe model behaviour, not causality.
 7. **Application integration:** connect the trained, versioned model to the API and communicate the study limitations.
@@ -87,7 +86,7 @@ No model has been trained. Survey-design standard errors and confidence interval
 - Python
 - FastAPI and Uvicorn
 - HTML5, Bootstrap 5 and JavaScript
-- Research pipeline: pandas; scikit-learn and survey-analysis tooling to be added after the validation design is specified
+- Research pipeline: pandas, scikit-learn, and survey-analysis tooling
 
 ## Run the current prototype
 
