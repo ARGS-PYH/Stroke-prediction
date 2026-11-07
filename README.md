@@ -39,13 +39,14 @@ Download the ZIP archive locally and keep it under `data/raw/`. You can pass the
 - [Feature selection and survey-aware validation](docs/FEATURE-SELECTION-VALIDATION.md)
 - [Research plan](docs/RESEARCH-PLAN.md)
 
-### Reproduce the data preparation
+### Reproduce the data preparation and first baseline
 
 ```bash
 python -m pip install -r requirements-research.txt
 python scripts/audit_brfss.py --input data/raw/LLCP2025XPT.zip
 python scripts/prepare_brfss.py --input data/raw/LLCP2025XPT.zip
 python scripts/eda_brfss.py --input data/processed/brfss2025_stroke_history_analysis.csv.gz
+python scripts/train_logistic_baseline.py --input data/processed/brfss2025_stroke_history_analysis.csv.gz
 ```
 
 The preparation script produces a local compressed analysis file at `data/processed/brfss2025_stroke_history_analysis.csv.gz` and aggregate preparation profile. It preserves the full 356,158-row source sample; only the 354,950 valid Yes/No outcome records are eligible for binary modelling. The respondent-level output is not stored in GitHub.
@@ -65,12 +66,12 @@ The initial valid-outcome cohort has 354,950 records: 16,353 Yes and 338,597 No.
 
 ## Current analysis status
 
-The initial exploratory analysis is complete. The valid Yes/No cohort contains 354,950 respondents (16,353 Yes; 338,597 No). The unweighted Yes share is 4.61%, and the weighted share among valid Yes/No records is 3.66%. The initial descriptive comparisons show higher reported prior-stroke prevalence in older age bands and among respondents reporting hypertension, heart attack/coronary heart disease, diabetes, current smoking, or no recent leisure-time physical activity. These are unadjusted, cross-sectional comparisons, not causal or prospective risk estimates.
+The initial exploratory analysis and first weighted Logistic Regression baseline are complete. The valid Yes/No cohort contains 354,950 respondents (16,353 Yes; 338,597 No). The unweighted Yes share is 4.61%, and the weighted share among valid Yes/No records is 3.66%. The initial descriptive comparisons show higher reported prior-stroke prevalence in older age bands and among respondents reporting hypertension, heart attack/coronary heart disease, diabetes, current smoking, or no recent leisure-time physical activity. These are unadjusted, cross-sectional comparisons, not causal or prospective risk estimates.
 
 - [BRFSS 2025 EDA report](docs/EDA-2025.md)
 - [Reproducible EDA script](scripts/eda_brfss.py)
 
-No model has been trained. Survey-design standard errors and confidence intervals have not yet been calculated; the EDA report documents the singleton-PSU issue that must be handled before inferential survey estimates.
+The first Logistic Regression comparison is documented in [the baseline report](docs/LOGISTIC-BASELINE-2025.md). No Random Forest, SHAP explanation, or design-based confidence interval for predictive performance has been completed. The EDA report documents singleton-PSU variance considerations.
 
 ## Planned research workflow
 
