@@ -1,6 +1,6 @@
 # Feature selection and validation design
 
-**Status:** Initial predictor set and survey-aware validation procedure specified. No machine-learning model has been trained.
+**Status:** Initial predictor set, survey-aware validation procedure, weighted Logistic Regression baseline and primary-feature Random Forest comparison completed. No clinical validation or design-based confidence intervals for model performance have been produced.
 
 ## 1. Task definition
 
@@ -85,12 +85,19 @@ The first weighted Logistic Regression comparison is documented in [LOGISTIC-BAS
 
 The outer holdout remains untouched while the decision threshold is selected by maximizing weighted Youden's J on four-fold development-only out-of-fold predictions. Regularization C is fixed at 1.0 for this initial baseline; it has not been tuned. Both 0.5 and the development-selected threshold are reported. The baseline does not use SMOTE, class weights, or class resampling.
 
-## 8. Model-fitting and evaluation sequence
+## 8. Initial Random Forest comparison
 
-1. Majority-class reference (always predicts no reported prior stroke) and weighted Logistic Regression baseline — initial comparison completed.
-2. Weighted Random Forest comparison — next planned model.
+The primary-feature Random Forest comparison is documented in [RANDOM-FOREST-2025.md](RANDOM-FOREST-2025.md). It uses 80 trees, maximum depth 12, minimum leaf size 75, `max_features="sqrt"`, bootstrap sampling of 60% of rows per tree, no class weighting, and the BRFSS final weights combined with the fold-adjustment weights passed through `sample_weight`.
 
-Start with the original survey weights (combined with fold-adjustment weights) and no class rebalancing. Normalize training weights to a stable scale if required by the estimator; preserve relative weights. Do not pass the survey weights, strata, or PSU identifiers into the feature matrix.
+The Random Forest's weighted ROC-AUC (0.8154) and PR-AUC (0.1452) were slightly higher than the matched Logistic Regression results (0.8134 and 0.1421). Logistic Regression had higher weighted specificity (70.92% vs 69.43%), precision (8.80% vs 8.44%) and F1 (0.1583 vs 0.1525). This is a small trade-off, not evidence that one model is definitively superior.
+
+**Weighting limitation:** scikit-learn's forest receives the fold-adjusted BRFSS weights through `sample_weight`, but with bootstrap enabled it still draws rows uniformly. Treat this as a survey-weighted machine-learning baseline, not a fully design-based Random Forest procedure. No design-based confidence intervals for its predictive performance have been calculated.
+
+## 9. Model-fitting and evaluation sequence
+
+The initial majority-class reference, weighted Logistic Regression and weighted Random Forest primary-feature comparison have been completed. Continue with stability/subgroup checks and, if warranted, a more explicitly survey-probability-aware forest method before tuning model hyperparameters.
+
+Training uses the final survey weights combined with fold-adjustment factors, normalised to mean one for numerical stability. No SMOTE, oversampling, class weighting or synthetic examples were used. Survey weights, strata and PSU identifiers are not passed as model predictors.
 
 For the held-out data, report weighted and unweighted versions where appropriate:
 
@@ -107,7 +114,7 @@ Accuracy is supplementary only. Report a threshold of 0.5 and, if another operat
 
 Design-based confidence intervals for performance metrics are a separate requirement; weighted point estimates alone must not be described as design-based inference. They will be calculated using the survey design, singleton-PSU handling, and a documented variance procedure before making population-level uncertainty claims.
 
-## 9. Interpretation limits
+## 10. Interpretation limits
 
 - The outcome is self-reported prior stroke history, not future stroke incidence.
 - Diagnoses and behaviours are measured at survey time; their temporal order relative to a past stroke is unknown.
@@ -115,7 +122,7 @@ Design-based confidence intervals for performance metrics are a separate require
 - BRFSS is a US adult telephone survey. Its performance results do not validate use in Nigeria.
 - No result from this academic analysis is a clinical diagnosis, medical advice, or personal forecast of future stroke.
 
-## 10. References and source documents
+## 11. References and source documents
 
 - CDC, [2025 BRFSS annual data and documentation](https://www.cdc.gov/brfss/annual_data/2025/annual_2025.html).
 - CDC, [Complex Sampling Weights and Preparing 2025 BRFSS Module Data for Analysis](https://www.cdc.gov/brfss/annual_data/2025/pdf/Complex-Sampling-Weights-and-Preparing-Module-Data-for-Analysis-2025-508.pdf).
