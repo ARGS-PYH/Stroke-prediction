@@ -29,7 +29,7 @@ The application serves the interface and API from the same FastAPI process.
 
 Open http://127.0.0.1:8000. API documentation is available at http://127.0.0.1:8000/docs, and the model health check is at http://127.0.0.1:8000/health.
 
-The app loads the versioned artifact at models/logistic_regression_primary_eight_features.joblib. The selected classification threshold is 0.0338646426, chosen using weighted Youden's J on development-only out-of-fold predictions. The final holdout was not used to choose the threshold.
+The app loads the versioned artifact at models/logistic_regression_primary_eight_features.joblib.gz. The selected classification threshold is 0.0338646426, chosen using weighted Youden's J on development-only out-of-fold predictions. The final holdout was not used to choose the threshold.
 
 See docs/INTERFACE-AND-API.md for input mapping, threshold handling, and interpretation guidance.
 
