@@ -27,7 +27,7 @@ The prototype's current output must not be interpreted as a medically meaningful
 - [Official 2025 annual data and documentation](https://www.cdc.gov/brfss/annual_data/2025/annual_2025.html)
 - [Official public-use XPT archive](https://www.cdc.gov/brfss/annual_data/2025/files/LLCP2025XPT.zip)
 
-The inspected file contains 356,158 respondents and 283 variables. The outcome `CVDSTRK3` asks whether a health professional has ever told the respondent they had a stroke. It is a measure of reported prior history, not future stroke incidence.
+The inspected file contains 356,158 respondents and 284 variables. The outcome `CVDSTRK3` asks whether a health professional has ever told the respondent they had a stroke. It is a measure of reported prior history, not future stroke incidence.
 
 ## Data handling
 
