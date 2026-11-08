@@ -27,9 +27,10 @@ ENV/
 # Generated reports and local outputs
 /reports/generated/
 
-# Generated model artifacts and local outputs
-/models/
+# Ignore generated model artifacts; keep only the versioned API model
+/models/*
 *.joblib
+!/models/logistic_regression_primary_eight_features.joblib
 *.pkl
 *.pickle
 
