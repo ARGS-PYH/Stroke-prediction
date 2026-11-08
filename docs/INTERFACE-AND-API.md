@@ -36,3 +36,11 @@ Open http://127.0.0.1:8000. API documentation is available at http://127.0.0.1:8
 - There are no design-based confidence intervals for model performance in this version.
 - SHAP/LIME explanations, external validation, and clinical validation have not been implemented.
 - Use hypothetical profiles only. Do not enter real patient or identifiable information.
+
+
+## Interface usability features
+
+- The **Try example** control fills the form with a hypothetical profile. It does not submit the profile automatically; the user must choose to run the classification.
+- The header checks the `/health` endpoint and shows whether the model artifact is available.
+- The result meter adjusts its visible range to keep the model score and selected threshold readable together. The displayed range is a visual aid and does not change the model score or classification.
+- The form identifies age as required and the remaining seven predictors as optional. Unanswered predictors remain missing and are handled by the fitted preprocessing pipeline.
