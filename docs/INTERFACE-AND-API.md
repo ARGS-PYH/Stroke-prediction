@@ -6,7 +6,7 @@ The web interface lets a user submit a **hypothetical BRFSS-style respondent pro
 
 ## Model integration
 
-- Model artifact: models/logistic_regression_primary_eight_features.joblib
+- Model artifact: models/logistic_regression_primary_eight_features.joblib.gz
 - API: POST /predict
 - Health check: GET /health
 - Interface: GET /
