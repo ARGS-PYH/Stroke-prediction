@@ -15,7 +15,8 @@ This repository contains an early application prototype and an emerging research
 - A reproducible data audit and full-sample preparation script have been added.
 - The prepared extract retains all 356,158 respondents; 1,208 non-binary/missing stroke outcomes remain missing and are excluded only from binary-model fitting.
 - The initial eight-feature set and survey-aware validation procedure are documented, with a stratum-wise fold-assignment helper and tests for inverse-probability weight adjustments.
-- No model has been trained or evaluated; SHAP/LIME explanations and clinical evaluation have not been implemented.
+- A weighted Logistic Regression baseline and a matched primary-feature Random Forest comparison have been trained on the same held-out respondents.
+- No SHAP explanation, design-based confidence interval for model performance, or clinical evaluation has been implemented.
 
 The prototype's current output must not be interpreted as a medically meaningful probability or recommendation.
 
@@ -37,6 +38,7 @@ Download the ZIP archive locally and keep it under `data/raw/`. You can pass the
 - [Preprocessing report and recoding rules](docs/PREPARATION-2025.md)
 - [EDA report](docs/EDA-2025.md)
 - [Feature selection and survey-aware validation](docs/FEATURE-SELECTION-VALIDATION.md)
+- [Random Forest and Logistic Regression comparison](docs/RANDOM-FOREST-2025.md)
 - [Research plan](docs/RESEARCH-PLAN.md)
 
 ### Reproduce the data preparation and first baseline
@@ -46,7 +48,7 @@ python -m pip install -r requirements-research.txt
 python scripts/audit_brfss.py --input data/raw/LLCP2025XPT.zip
 python scripts/prepare_brfss.py --input data/raw/LLCP2025XPT.zip
 python scripts/eda_brfss.py --input data/processed/brfss2025_stroke_history_analysis.csv.gz
-python scripts/train_logistic_baseline.py --input data/processed/brfss2025_stroke_history_analysis.csv.gz
+python scripts/train_model_comparison.py --primary-only
 ```
 
 The preparation script produces a local compressed analysis file at `data/processed/brfss2025_stroke_history_analysis.csv.gz` and aggregate preparation profile. It preserves the full 356,158-row source sample; only the 354,950 valid Yes/No outcome records are eligible for binary modelling. The respondent-level output is not stored in GitHub.
@@ -71,16 +73,16 @@ The initial exploratory analysis and first weighted Logistic Regression baseline
 - [BRFSS 2025 EDA report](docs/EDA-2025.md)
 - [Reproducible EDA script](scripts/eda_brfss.py)
 
-The first Logistic Regression comparison is documented in [the baseline report](docs/LOGISTIC-BASELINE-2025.md). No Random Forest, SHAP explanation, or design-based confidence interval for predictive performance has been completed. The EDA report documents singleton-PSU variance considerations.
+The primary-feature comparison is documented in [the model comparison report](docs/RANDOM-FOREST-2025.md). Random Forest has slightly higher weighted ROC-AUC and PR-AUC, while Logistic Regression has higher precision, specificity and F1 at the selected thresholds. The difference is small; neither is a clear winner. Design-based confidence intervals for predictive performance and SHAP explanations remain future work.
 
 ## Planned research workflow
 
 1. **Data quality and EDA:** profile missingness, response distributions, survey-weighted prevalence, and feature relationships.
 2. **Feature rationale and validation design:** completed and documented; the primary eight features, demographic baseline, CHD/MI sensitivity model, and stratum-wise holdout procedure are prespecified.
-3. **Modelling:** weighted Logistic Regression baseline completed; next compare an appropriately weighted Random Forest.
-5. **Evaluation:** report sensitivity/recall, specificity, precision, F1, PR-AUC, ROC-AUC, calibration, and confusion matrix. Accuracy alone is insufficient.
-6. **Explainability:** add SHAP only after selecting and validating a model; explanations describe model behaviour, not causality.
-7. **Application integration:** connect the trained, versioned model to the API and communicate the study limitations.
+3. **Modelling:** initial weighted Logistic Regression and Random Forest comparison completed; evaluate stability and consider a more survey-aware forest method.
+4. **Evaluation:** report sensitivity/recall, specificity, precision, F1, PR-AUC, ROC-AUC, calibration, and confusion matrix. Accuracy alone is insufficient. Design-based uncertainty remains to be addressed.
+5. **Explainability:** add SHAP only after selecting and validating a model; explanations describe model behaviour, not causality.
+6. **Application integration:** connect the selected, versioned research model to the API and communicate the study limitations.
 
 ## Technology
 
