@@ -70,7 +70,7 @@ The detailed feature rationale and validation plan are documented in FEATURE-SEL
 Start with transparent baselines and add complexity only when justified:
 
 - Majority-class reference and weighted Logistic Regression comparisons have been fitted on the prespecified outer holdout; development-only out-of-fold predictions selected decision thresholds.
-- Random Forest remains the next model comparison.
+- A weighted Random Forest primary-feature comparison has now been completed on the same prespecified outer holdout. The Random Forest uses 80 trees, maximum depth 12, minimum leaf size 75, square-root feature selection, 60% uniform bootstrap samples, and BRFSS fold-adjusted sample weights. See [RANDOM-FOREST-2025.md](RANDOM-FOREST-2025.md).
 
 Use reproducible seeds, keep preprocessing inside each fold, and record package versions. Start with survey weights and no class rebalancing; compare any class weighting or resampling only as a training-fold sensitivity analysis.
 
@@ -108,7 +108,7 @@ Do not use real identifiable patient data. Do not collect patient information in
 
 ## 12. Current status
 
-The repository contains an early FastAPI/HTML prototype, full-sample preparation and EDA scripts, prespecified feature/validation design, tested survey-aware fold utility, and an initial weighted Logistic Regression comparison. The baseline report records weighted/unweighted metrics and explicitly notes that no Random Forest, design-based confidence interval for predictive performance, SHAP explanation, or clinical validation has been completed.
+The repository contains an early FastAPI/HTML prototype, full-sample preparation and EDA scripts, prespecified feature/validation design, tested survey-aware fold utility, and an initial matched weighted Logistic Regression/Random Forest comparison on the primary eight features. The Random Forest has slightly higher weighted ROC-AUC and PR-AUC, while Logistic Regression has higher precision, specificity and F1 at the selected thresholds. This is a small trade-off rather than a clear winner. Design-based confidence intervals for predictive performance, stability analysis, SHAP explanations and clinical validation have not been completed.
 
 ## Research integrity note
 
