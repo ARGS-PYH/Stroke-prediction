@@ -3,181 +3,226 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f4f7fb">
-  <meta name="description" content="An academic machine-learning demonstrator exploring self-reported stroke history in the 2025 BRFSS survey.">
+  <meta name="theme-color" content="#0b2c50">
+  <meta name="description" content="An academic demonstrator classifying self-reported prior stroke history using the CDC BRFSS 2025 survey.">
   <title>Stroke History Explorer · BRFSS 2025</title>
   <style>
     :root {
       color-scheme: light;
-      --ink: #17263a; --muted: #65758a; --soft-muted: #8795a7;
-      --line: #e4eaf1; --surface: #fff; --canvas: #f4f7fb;
-      --navy: #132b46; --teal: #087f80; --teal-dark: #066a6c;
-      --teal-soft: #e7f5f3; --amber-soft: #fff7e9; --red: #9d4b45;
-      --red-soft: #fff0ee; --shadow: 0 18px 50px rgba(24,48,75,.07);
-      --radius: 20px;
+      --navy: #0b2e52;
+      --navy-2: #164b78;
+      --blue: #216aa5;
+      --teal: #147f7b;
+      --teal-dark: #096a68;
+      --ink: #172b42;
+      --muted: #64758a;
+      --soft: #8b9aab;
+      --line: #dfe7ef;
+      --surface: #fff;
+      --canvas: #f3f7fb;
+      --blue-soft: #eef5fb;
+      --teal-soft: #eaf6f4;
+      --violet-soft: #f4f1fb;
+      --amber-soft: #fff8eb;
+      --amber-ink: #7a5a26;
+      --red-soft: #fff0ef;
+      --red: #a34e48;
+      --shadow: 0 16px 44px rgba(16, 48, 78, .075);
+      --radius: 18px;
     }
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 88px; }
     body { margin: 0; background: var(--canvas); color: var(--ink); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.5; }
     button, input, select { font: inherit; }
-    a { color: var(--teal-dark); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .topbar { height: 76px; display: flex; align-items: center; border-bottom: 1px solid rgba(222,231,240,.9); background: rgba(255,255,255,.88); backdrop-filter: blur(12px); }
-    .topbar-inner, .page { width: min(1180px, calc(100% - 48px)); margin: 0 auto; }
-    .topbar-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
-    .brand { display: flex; align-items: center; gap: 12px; color: var(--ink); font-weight: 750; letter-spacing: -.025em; }
-    .brand-mark { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; color: white; background: linear-gradient(145deg,#0a8582,#14566e); box-shadow: 0 7px 16px rgba(8,127,128,.2); }
-    .brand-mark svg { width: 22px; height: 22px; }
-    .brand small { display: block; color: var(--soft-muted); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin-top: 1px; }
-    .top-actions { display: flex; align-items: center; gap: 20px; color: var(--muted); font-size: 13px; font-weight: 600; }
-    .top-link { display: inline-flex; align-items: center; gap: 7px; }
-    .top-link svg { width: 15px; height: 15px; }
-    .status-pill, .eyebrow { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; font-size: 10px; line-height: 1; font-weight: 800; letter-spacing: .105em; text-transform: uppercase; }
-    .status-pill { color: #246a6c; background: #e8f5f3; padding: 9px 12px; }
-    .service-status { display: inline-flex; align-items: center; gap: 7px; color: #8996a4; font-size: 10px; font-weight: 700; white-space: nowrap; }
-    .service-indicator { width: 7px; height: 7px; border-radius: 50%; background: #c5a36e; box-shadow: 0 0 0 3px rgba(197,163,110,.13); }
-    .service-status.is-online { color: #397c70; }
-    .service-status.is-online .service-indicator { background: #2c9b83; box-shadow: 0 0 0 3px rgba(44,155,131,.13); }
-    .service-status.is-offline { color: #a05b53; }
-    .service-status.is-offline .service-indicator { background: #c96b60; box-shadow: 0 0 0 3px rgba(201,107,96,.13); }
-    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #2b9a89; }
-    .page { padding: 48px 0 36px; }
-    .hero { display: flex; justify-content: space-between; align-items: flex-end; gap: 30px; margin-bottom: 28px; }
-    .eyebrow { color: var(--teal-dark); margin-bottom: 13px; }
-    .eyebrow::before { content: ""; width: 20px; height: 1px; background: currentColor; }
-    h1 { margin: 0; max-width: 670px; color: var(--navy); font-size: clamp(32px,4vw,46px); line-height: 1.08; letter-spacing: -.045em; font-weight: 760; }
-    .hero-copy { max-width: 650px; margin: 14px 0 0; color: var(--muted); font-size: 15px; line-height: 1.7; }
-    .hero-meta { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; padding-bottom: 4px; }
-    .meta-chip { padding: 10px 13px; border: 1px solid var(--line); border-radius: 11px; background: rgba(255,255,255,.75); color: #52647a; font-size: 11px; font-weight: 700; white-space: nowrap; }
-    .meta-chip strong { color: var(--navy); }
-    .notice { display: flex; align-items: flex-start; gap: 13px; padding: 15px 17px; border: 1px solid #eadfcb; background: #fffaf1; border-radius: 14px; color: #775c33; margin-bottom: 22px; }
-    .notice svg { width: 19px; height: 19px; flex: 0 0 auto; margin-top: 1px; }
-    .notice strong { display: block; color: #6c4c1e; font-size: 12px; margin-bottom: 2px; }
-    .notice p { margin: 0; font-size: 12px; line-height: 1.55; }
-    .workspace { display: grid; grid-template-columns: minmax(0,1.32fr) minmax(330px,.88fr); gap: 22px; align-items: start; }
-    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
-    .form-panel { padding: 26px 28px 24px; }
-    .panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 22px; }
-    .panel-heading h2 { margin: 0; font-size: 18px; color: var(--navy); letter-spacing: -.025em; }
-    .panel-heading p { margin: 5px 0 0; font-size: 12px; color: var(--muted); }
-    .step-tag { border-radius: 8px; background: #f0f4f8; color: #64758a; padding: 7px 9px; font-size: 10px; font-weight: 800; letter-spacing: .08em; white-space: nowrap; }
-    .panel-tools { display: flex; align-items: center; gap: 9px; flex: 0 0 auto; }
-    .sample-btn { display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 0 10px; border: 1px solid #dce8e8; border-radius: 9px; color: var(--teal-dark); background: #f6fbfa; cursor: pointer; font-size: 10px; font-weight: 800; transition: background .15s ease, border-color .15s ease, transform .15s ease; }
-    .sample-btn:hover { background: var(--teal-soft); border-color: #b9dcd8; transform: translateY(-1px); }
-    .sample-btn svg { width: 13px; height: 13px; }
-    .input-summary { display: flex; align-items: center; gap: 7px; margin-top: 9px; color: #8291a0; font-size: 10px; }
-    .input-summary-dot { width: 6px; height: 6px; border-radius: 50%; background: #d19a49; }
-    .section-title { display: flex; align-items: center; gap: 9px; margin: 22px 0 13px; padding-bottom: 9px; border-bottom: 1px solid #edf1f5; color: #42576e; font-size: 11px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
-    .section-title:first-of-type { margin-top: 0; }
-    .section-icon { width: 25px; height: 25px; display: grid; place-items: center; border-radius: 8px; color: var(--teal-dark); background: var(--teal-soft); }
-    .section-icon svg { width: 14px; height: 14px; }
-    .fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); column-gap: 16px; row-gap: 15px; }
+    a { color: inherit; text-decoration: none; }
+    a:hover { text-decoration: none; }
+    button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid rgba(45, 132, 183, .27); outline-offset: 2px; }
+
+    .topbar { position: sticky; top: 0; z-index: 20; color: #fff; background: linear-gradient(112deg, #0c355c 0%, #082848 65%, #061f3a 100%); box-shadow: 0 5px 20px rgba(5, 28, 51, .17); }
+    .topbar::after { content: ""; position: absolute; inset: 0 0 0 auto; width: 36%; pointer-events: none; opacity: .18; background: linear-gradient(135deg, transparent 30%, rgba(91, 160, 204, .25) 30%, transparent 65%); }
+    .topbar-inner { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 24px; width: min(1280px, calc(100% - 48px)); min-height: 82px; margin: 0 auto; }
+    .brand { display: flex; align-items: center; gap: 13px; min-width: 0; }
+    .brand-mark { display: grid; place-items: center; flex: 0 0 46px; width: 46px; height: 46px; border: 1px solid rgba(255,255,255,.32); border-radius: 14px; color: #d7f3f2; background: rgba(255,255,255,.08); }
+    .brand-mark svg { width: 29px; height: 29px; }
+    .brand-title { color: #fff; font-size: 19px; line-height: 1.2; font-weight: 800; letter-spacing: -.025em; }
+    .brand-subtitle { margin-top: 4px; color: rgba(233,243,251,.72); font-size: 10px; letter-spacing: .08em; font-weight: 700; text-transform: uppercase; }
+    .prototype-pill { display: inline-flex; vertical-align: 3px; align-items: center; margin-left: 8px; padding: 5px 8px; border-radius: 999px; color: #d8eff4; background: rgba(127,184,214,.17); font-size: 9px; letter-spacing: .07em; text-transform: uppercase; }
+    .nav { display: flex; align-items: center; gap: 7px; }
+    .nav a { display: inline-flex; align-items: center; gap: 8px; padding: 11px 13px; border-radius: 9px; color: rgba(240,247,252,.82); font-size: 11px; font-weight: 700; transition: background .16s ease, color .16s ease; }
+    .nav a:hover, .nav a[aria-current="page"] { color: #fff; background: rgba(255,255,255,.12); }
+    .nav svg { width: 16px; height: 16px; opacity: .9; }
+
+    .page { width: min(1280px, calc(100% - 48px)); margin: 0 auto; padding: 32px 0 42px; }
+    .intro { display: flex; justify-content: space-between; align-items: flex-end; gap: 28px; margin-bottom: 20px; }
+    .eyebrow { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 9px; color: var(--teal-dark); font-size: 10px; font-weight: 850; letter-spacing: .13em; text-transform: uppercase; }
+    .eyebrow::before { content: ""; width: 19px; height: 1px; background: currentColor; }
+    h1 { max-width: 720px; margin: 0; color: var(--navy); font-size: clamp(28px, 3.6vw, 39px); line-height: 1.12; letter-spacing: -.045em; }
+    .intro-copy { max-width: 710px; margin: 9px 0 0; color: var(--muted); font-size: 13px; line-height: 1.65; }
+    .study-stats { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+    .stat-chip { padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: rgba(255,255,255,.75); color: var(--muted); font-size: 10px; white-space: nowrap; }
+    .stat-chip strong { color: var(--navy); font-size: 13px; margin-right: 3px; }
+
+    .notice { display: flex; align-items: flex-start; gap: 12px; margin: 0 0 19px; padding: 13px 15px; border: 1px solid #eadbbd; border-radius: 13px; background: var(--amber-soft); color: var(--amber-ink); }
+    .notice svg { flex: 0 0 18px; width: 18px; height: 18px; margin-top: 1px; }
+    .notice strong { display: block; margin-bottom: 2px; color: #6a4b1c; font-size: 11px; }
+    .notice p { margin: 0; font-size: 10px; line-height: 1.6; }
+
+    .workspace { display: grid; grid-template-columns: minmax(0, 1.02fr) minmax(420px, .98fr); align-items: start; gap: 18px; }
+    .panel { min-width: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); }
+    .form-panel { padding: 22px 23px 20px; }
+    .panel-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 15px; margin-bottom: 18px; }
+    .heading-group { min-width: 0; }
+    .heading-line { display: flex; align-items: center; gap: 10px; }
+    .heading-icon { display: grid; place-items: center; flex: 0 0 34px; width: 34px; height: 34px; border-radius: 10px; color: var(--blue); background: var(--blue-soft); }
+    .heading-icon svg { width: 19px; height: 19px; }
+    h2 { margin: 0; color: var(--navy); font-size: 17px; line-height: 1.25; letter-spacing: -.025em; }
+    .panel-head p { margin: 5px 0 0 44px; color: var(--muted); font-size: 10px; line-height: 1.5; }
+    .head-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+    .try-btn { display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 0 10px; border: 1px solid #cbddea; border-radius: 9px; color: var(--navy-2); background: #f7fbff; cursor: pointer; font-size: 10px; font-weight: 800; transition: background .15s ease, transform .15s ease; }
+    .try-btn:hover { transform: translateY(-1px); background: var(--blue-soft); }
+    .try-btn svg { width: 14px; height: 14px; }
+    .input-count { padding: 7px 8px; border-radius: 8px; background: #f0f4f8; color: #66798d; font-size: 9px; font-weight: 850; letter-spacing: .08em; white-space: nowrap; }
+    .section-label { display: flex; align-items: center; gap: 8px; margin: 17px 0 11px; padding-bottom: 8px; border-bottom: 1px solid #edf1f5; color: #50667d; font-size: 9px; font-weight: 850; letter-spacing: .11em; text-transform: uppercase; }
+    .section-label:first-of-type { margin-top: 0; }
+    .section-label svg { width: 14px; height: 14px; color: var(--teal); }
+    .fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 14px; }
     .field { min-width: 0; }
     .field.full { grid-column: 1 / -1; }
-    label { display: block; margin-bottom: 7px; color: #30445b; font-size: 12px; font-weight: 700; }
-    .optional { color: #92a0ae; font-weight: 500; font-size: 10px; margin-left: 4px; }
-    input, select { width: 100%; min-height: 43px; padding: 10px 12px; color: #263c53; background: #fff; border: 1px solid #dce4ec; border-radius: 9px; outline: none; font-size: 12px; transition: border-color .18s ease, box-shadow .18s ease; }
-    input::placeholder { color: #a4afba; }
-    input:focus, select:focus { border-color: #51a8a0; box-shadow: 0 0 0 3px rgba(8,127,128,.10); }
-    .hint { display: block; margin-top: 5px; color: #8997a6; font-size: 10px; line-height: 1.4; }
-    .form-bottom { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid #edf1f5; margin-top: 22px; padding-top: 18px; }
-    .form-caption { max-width: 235px; color: #8895a3; font-size: 10px; line-height: 1.5; }
-    .form-actions { display: flex; align-items: center; gap: 11px; }
-    .btn { min-height: 44px; border: 0; border-radius: 10px; padding: 0 17px; cursor: pointer; font-size: 12px; font-weight: 750; transition: transform .15s ease, background .15s ease, box-shadow .15s ease; }
-    .btn:focus-visible { outline: 3px solid rgba(8,127,128,.25); outline-offset: 2px; }
-    .btn:disabled { cursor: wait; opacity: .7; }
-    .btn-primary { display: inline-flex; align-items: center; gap: 9px; color: white; background: var(--teal); box-shadow: 0 7px 16px rgba(8,127,128,.16); }
-    .btn-primary:hover:not(:disabled) { background: var(--teal-dark); transform: translateY(-1px); }
-    .btn-primary svg { width: 15px; height: 15px; }
-    .btn-quiet { color: #607286; background: transparent; padding: 0 8px; }
-    .btn-quiet:hover { color: var(--navy); background: #f5f7fa; }
-    .right-column { display: grid; gap: 17px; }
-    .result-panel { padding: 24px; min-height: 304px; overflow: hidden; position: relative; }
-    .result-panel::before { content: ""; position: absolute; right: -76px; top: -82px; width: 190px; height: 190px; border-radius: 50%; border: 1px solid rgba(8,127,128,.08); box-shadow: 0 0 0 22px rgba(8,127,128,.025),0 0 0 44px rgba(8,127,128,.018); pointer-events: none; }
-    .result-kicker { color: var(--teal-dark); font-size: 10px; letter-spacing: .12em; font-weight: 850; text-transform: uppercase; }
-    .result-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; position: relative; }
-    .result-head h2 { margin: 7px 0 0; font-size: 18px; letter-spacing: -.025em; color: var(--navy); }
-    .result-icon { width: 38px; height: 38px; display: grid; place-items: center; color: var(--teal-dark); background: var(--teal-soft); border-radius: 12px; }
-    .result-icon svg { width: 20px; height: 20px; }
-    .empty-state { position: relative; padding: 34px 15px 12px; text-align: center; }
-    .empty-illustration { width: 74px; height: 74px; display: grid; place-items: center; margin: 0 auto 16px; border-radius: 23px; background: linear-gradient(145deg,#eef8f7,#f2f6fa); color: #318b88; }
-    .empty-illustration svg { width: 34px; height: 34px; }
-    .empty-state h3 { margin: 0; font-size: 14px; color: #344a60; }
-    .empty-state p { max-width: 260px; margin: 7px auto 0; font-size: 11px; line-height: 1.6; color: #8290a0; }
-    .result-content { position: relative; margin-top: 23px; }
-    .class-label { display: inline-flex; align-items: center; gap: 7px; padding: 8px 10px; border-radius: 999px; background: var(--teal-soft); color: var(--teal-dark); font-size: 10px; font-weight: 800; }
-    .class-label.negative { color: #53687d; background: #eef2f6; }
-    .class-label .status-dot { width: 6px; height: 6px; }
-    .score-row { display: flex; align-items: baseline; gap: 8px; margin: 16px 0 1px; }
-    .score-value { color: var(--navy); font-size: 39px; letter-spacing: -.055em; line-height: 1.1; font-weight: 780; }
-    .score-unit { color: #8190a0; font-size: 11px; }
-    .score-caption { margin: 3px 0 13px; color: #718196; font-size: 10px; }
-    .meter { height: 8px; background: #edf1f5; border-radius: 999px; position: relative; overflow: visible; }
-    .meter-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg,#5db4a5,#087f80); transition: width .5s ease; }
-    .meter-threshold { position: absolute; top: -4px; width: 2px; height: 16px; background: #b47b29; border-radius: 3px; }
-    .meter-legend { display: flex; justify-content: space-between; gap: 10px; margin-top: 8px; color: #91a0af; font-size: 9px; }
-    .result-explanation { margin: 16px 0 0; padding: 12px 13px; border-radius: 10px; background: #f6f8fa; color: #64758a; font-size: 10px; line-height: 1.6; }
-    .result-explanation strong { color: #40556d; }
-    .error-box { margin-top: 14px; padding: 11px 12px; border-radius: 9px; border: 1px solid #f0d6d3; background: var(--red-soft); color: var(--red); font-size: 11px; line-height: 1.5; }
+    label { display: block; margin-bottom: 5px; color: #344b63; font-size: 10px; font-weight: 750; }
+    .optional { margin-left: 3px; color: #91a0ae; font-size: 9px; font-weight: 500; }
+    input, select { width: 100%; min-height: 39px; padding: 8px 10px; border: 1px solid #d7e1ea; border-radius: 8px; outline: none; color: #243c55; background: #fff; font-size: 11px; transition: border-color .15s ease, box-shadow .15s ease; }
+    input::placeholder { color: #a6b2be; }
+    input:focus, select:focus { border-color: #6aa7bd; box-shadow: 0 0 0 3px rgba(45,132,183,.10); }
+    .hint { display: block; margin-top: 4px; color: #8b99a7; font-size: 9px; line-height: 1.45; }
+    .form-foot { display: flex; justify-content: space-between; align-items: center; gap: 13px; margin-top: 18px; padding-top: 15px; border-top: 1px solid #edf1f5; }
+    .form-note { max-width: 240px; margin: 0; color: #8997a5; font-size: 9px; line-height: 1.5; }
+    .form-buttons { display: flex; align-items: center; gap: 8px; }
+    .btn { display: inline-flex; justify-content: center; align-items: center; gap: 8px; min-height: 41px; padding: 0 14px; border: 0; border-radius: 9px; cursor: pointer; font-size: 10px; font-weight: 800; transition: transform .15s ease, background .15s ease, box-shadow .15s ease; }
+    .btn:disabled { opacity: .7; cursor: wait; }
+    .btn-primary { color: #fff; background: linear-gradient(110deg, #164f7f, #0e6d83); box-shadow: 0 7px 15px rgba(17,82,124,.17); }
+    .btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 9px 20px rgba(17,82,124,.22); }
+    .btn-primary svg { width: 14px; height: 14px; }
+    .btn-quiet { color: #617489; background: #f2f5f8; }
+    .btn-quiet:hover { background: #e9eef3; }
+    .error-box { margin-top: 12px; padding: 10px 12px; border: 1px solid #f0d3d0; border-radius: 9px; color: var(--red); background: var(--red-soft); font-size: 10px; line-height: 1.5; }
     [hidden] { display: none !important; }
-    .metrics-panel { padding: 20px 22px 18px; }
-    .mini-heading { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 15px; }
-    .mini-heading h3 { margin: 0; color: var(--navy); font-size: 13px; letter-spacing: -.01em; }
-    .mini-heading span { color: #96a2af; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
-    .metric-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
-    .metric { padding: 12px 13px; border: 1px solid #edf1f5; border-radius: 11px; background: #fbfcfd; }
-    .metric strong { display: block; color: #243d57; font-size: 21px; letter-spacing: -.04em; }
-    .metric span { display: block; margin-top: 2px; color: #8996a4; font-size: 9px; line-height: 1.4; }
-    .metrics-note { margin: 12px 1px 0; color: #8a97a5; font-size: 10px; line-height: 1.5; }
-    .about-panel { padding: 19px 21px; }
-    .about-panel h3 { display: flex; align-items: center; gap: 8px; color: var(--navy); font-size: 13px; margin: 0 0 8px; }
-    .about-panel h3 svg { color: var(--teal); width: 16px; height: 16px; }
-    .about-panel p { margin: 0; color: #748397; font-size: 10px; line-height: 1.65; }
-    .about-panel p + p { margin-top: 7px; }
-    .source-link { display: inline-flex; align-items: center; gap: 5px; margin-top: 11px; font-size: 10px; font-weight: 750; }
+
+    .right-column { display: grid; gap: 14px; }
+    .result-panel { padding: 19px; }
+    .model-status { display: flex; align-items: center; gap: 9px; min-height: 39px; padding: 8px 11px; border-radius: 9px; background: #eff6fb; color: #48647e; font-size: 10px; }
+    .status-light { width: 8px; height: 8px; border-radius: 50%; background: #c69a52; box-shadow: 0 0 0 3px rgba(198,154,82,.12); }
+    .model-status.ready { color: #26665e; background: #eaf6f2; }
+    .model-status.ready .status-light { background: #2a9b7e; box-shadow: 0 0 0 3px rgba(42,155,126,.12); }
+    .model-status.offline { color: #92534d; background: #fff0ef; }
+    .model-status.offline .status-light { background: #c46e62; box-shadow: 0 0 0 3px rgba(196,110,98,.12); }
+    .status-divider { width: 1px; height: 20px; margin: 0 5px; background: rgba(89,119,145,.22); }
+    .model-name { color: #526a80; }
+    .result-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin: 17px 1px 13px; }
+    .result-head h2 { font-size: 19px; }
+    .result-head p { margin: 4px 0 0; color: var(--muted); font-size: 10px; }
+    .result-icon { display: grid; place-items: center; width: 35px; height: 35px; border-radius: 11px; color: var(--blue); background: var(--blue-soft); }
+    .result-icon svg { width: 19px; height: 19px; }
+    .empty-state { display: grid; justify-items: center; padding: 24px 14px 20px; text-align: center; border: 1px dashed #d7e1ea; border-radius: 13px; background: linear-gradient(150deg, #fbfdff, #f5f9fc); }
+    .empty-art { display: grid; place-items: center; width: 57px; height: 57px; margin-bottom: 10px; border-radius: 17px; color: #347a9b; background: #eaf3f9; }
+    .empty-art svg { width: 28px; height: 28px; }
+    .empty-state h3 { margin: 0; color: #344c65; font-size: 12px; }
+    .empty-state p { max-width: 275px; margin: 5px 0 0; color: #8291a1; font-size: 10px; line-height: 1.55; }
+    .result-body { padding: 14px; border: 1px solid #e2eaf1; border-radius: 13px; background: #fcfdff; }
+    .classification-row { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 15px; }
+    .class-tag { display: inline-flex; align-items: center; gap: 7px; max-width: 100%; padding: 8px 10px; border-radius: 999px; color: #146f6c; background: var(--teal-soft); font-size: 10px; line-height: 1.4; font-weight: 800; }
+    .class-tag.negative { color: #4e657c; background: #edf2f6; }
+    .class-tag .class-dot { width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; background: currentColor; }
+    .score-block { text-align: right; white-space: nowrap; }
+    .score-label { display: block; margin-bottom: 2px; color: #78899a; font-size: 9px; font-weight: 750; }
+    .score-value { color: var(--navy); font-size: 30px; line-height: 1.1; font-weight: 850; letter-spacing: -.055em; }
+    .score-caption { margin: 8px 0 12px; color: #7d8d9d; font-size: 9px; line-height: 1.5; }
+    .meter { position: relative; height: 9px; border-radius: 99px; background: #e7edf3; }
+    .meter-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #72b9b0, #17877f); transition: width .4s ease; }
+    .meter-marker { position: absolute; top: -5px; left: 0; width: 2px; height: 19px; border-radius: 2px; background: #bd8d3f; }
+    .meter-legend { display: flex; justify-content: space-between; gap: 9px; margin-top: 7px; color: #8795a4; font-size: 8px; }
+    .threshold-pill { color: #85632f; font-weight: 800; text-align: center; }
+    .result-explanation { margin: 12px 0 0; padding: 10px 11px; border-radius: 9px; color: #5f7286; background: #f1f6fa; font-size: 9px; line-height: 1.6; }
+    .result-explanation strong { color: #344e67; }
+    .lower-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .info-card { padding: 15px; border: 1px solid var(--line); border-radius: 13px; background: var(--blue-soft); }
+    .info-card.reminder { background: var(--violet-soft); border-color: #e7e0f2; }
+    .info-card h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; color: var(--navy); font-size: 11px; }
+    .info-card h3 svg { width: 16px; height: 16px; color: var(--blue); }
+    .info-card.reminder h3 svg { color: #7660a4; }
+    .info-card ul { margin: 0; padding-left: 15px; color: #60748a; font-size: 9px; line-height: 1.6; }
+    .info-card li + li { margin-top: 4px; }
+
+    .details-section { margin-top: 23px; scroll-margin-top: 95px; }
+    .section-heading { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 11px; }
+    .section-heading h2 { font-size: 18px; }
+    .section-heading p { margin: 4px 0 0; color: var(--muted); font-size: 10px; }
+    .details-grid { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 12px; }
+    .detail-card { padding: 16px; border: 1px solid var(--line); border-radius: 13px; background: #fff; box-shadow: 0 8px 24px rgba(16,48,78,.035); }
+    .detail-card h3 { margin: 0 0 6px; color: var(--navy); font-size: 11px; }
+    .detail-card p { margin: 0; color: #687b8f; font-size: 9px; line-height: 1.65; }
+    .metric-strip { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 9px; margin-top: 12px; }
+    .metric { padding: 11px 12px; border: 1px solid #e4ebf1; border-radius: 10px; background: #fbfdff; }
+    .metric strong { display: block; color: var(--navy); font-size: 20px; letter-spacing: -.045em; }
+    .metric span { display: block; margin-top: 2px; color: #8291a0; font-size: 8px; line-height: 1.4; }
+    .precision-note { margin: 9px 1px 0; color: #8997a5; font-size: 9px; line-height: 1.55; }
+    .predictor-list { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+    .predictor { padding: 6px 8px; border: 1px solid #e1e9ef; border-radius: 7px; color: #5f7286; background: #f8fafc; font-size: 8px; font-weight: 700; }
+    .disclaimer-card { display: flex; gap: 12px; padding: 15px; border: 1px solid #eadbbd; border-radius: 13px; background: var(--amber-soft); color: var(--amber-ink); }
+    .disclaimer-card svg { flex: 0 0 18px; width: 18px; height: 18px; }
+    .disclaimer-card strong { display: block; margin-bottom: 4px; color: #6a4b1c; font-size: 10px; }
+    .disclaimer-card p { margin: 0; font-size: 9px; line-height: 1.65; }
+    .source-link { display: inline-flex; align-items: center; gap: 5px; margin-top: 9px; color: var(--teal-dark); font-size: 9px; font-weight: 800; }
     .source-link svg { width: 12px; height: 12px; }
-    footer { display: flex; justify-content: space-between; gap: 18px; border-top: 1px solid #e3eaf1; padding-top: 18px; margin-top: 27px; color: #91a0ae; font-size: 10px; }
-    footer strong { color: #68798b; font-weight: 700; }
-    .spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.45); border-top-color: white; border-radius: 50%; animation: spin .7s linear infinite; }
+    footer { display: flex; justify-content: space-between; gap: 15px; margin-top: 22px; padding-top: 15px; border-top: 1px solid #dfe7ef; color: #8796a5; font-size: 9px; }
+    footer strong { color: #62768b; }
+    .spinner { width: 13px; height: 13px; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; border-radius: 50%; animation: spin .7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    @media (max-width: 900px) {
-      .hero { display: block; }
-      .hero-meta { justify-content: flex-start; margin-top: 19px; }
-      .workspace { grid-template-columns: minmax(0,1fr) minmax(290px,.8fr); gap: 15px; }
-      .form-panel { padding: 22px; }
-      .result-panel { padding: 20px; }
+
+    @media (max-width: 1050px) {
+      .topbar-inner, .page { width: min(100% - 34px, 920px); }
+      .topbar-inner { align-items: flex-start; flex-direction: column; gap: 8px; padding: 13px 0 10px; }
+      .nav { width: 100%; overflow-x: auto; }
+      .nav a { white-space: nowrap; }
+      .workspace { grid-template-columns: minmax(0,1fr) minmax(360px,.95fr); }
+      .form-panel { padding: 19px; }
     }
-    @media (max-width: 720px) {
-      .topbar { height: 66px; }
-      .topbar-inner, .page { width: min(100% - 30px,560px); }
-      .top-actions .top-link { display: none; }
-      .page { padding-top: 32px; }
-      .hero { margin-bottom: 20px; }
-      h1 { font-size: 34px; }
-      .hero-copy { font-size: 13px; }
+    @media (max-width: 800px) {
+      .intro { display: block; }
+      .study-stats { justify-content: flex-start; margin-top: 13px; }
       .workspace { grid-template-columns: 1fr; }
       .right-column { grid-row: 1; }
-      .result-panel { min-height: 0; }
-      .empty-state { padding: 24px 12px 8px; }
-      .form-panel { padding: 20px 17px; }
-      footer { display: block; line-height: 1.8; }
-      footer span { display: block; }
+      .details-grid { grid-template-columns: 1fr; }
+      .metric-strip { grid-template-columns: repeat(2,minmax(0,1fr)); }
     }
-    @media (max-width: 560px) {
-      .panel-heading { align-items: flex-start; }
-      .panel-tools { flex-direction: column-reverse; align-items: flex-end; gap: 7px; }
-      .sample-btn { min-height: 31px; }
-      .service-status { display: none; }
-    }
-    @media (max-width: 430px) {
-      .status-pill { font-size: 9px; padding: 8px 9px; }
-      .brand { font-size: 13px; }
+    @media (max-width: 520px) {
+      .topbar-inner, .page { width: calc(100% - 26px); }
+      .brand-title { font-size: 15px; }
+      .prototype-pill { display: none; }
+      .brand-mark { flex-basis: 40px; width: 40px; height: 40px; }
+      .nav { gap: 2px; }
+      .nav a { padding: 9px 10px; font-size: 9px; }
+      .nav svg { display: none; }
+      .page { padding-top: 24px; }
+      h1 { font-size: 29px; }
+      .intro-copy { font-size: 11px; }
+      .notice { padding: 11px; }
+      .notice p { font-size: 9px; }
+      .form-panel { padding: 16px 14px; }
+      .panel-head { gap: 8px; }
+      .panel-head p { margin-left: 0; }
+      .heading-icon { display: none; }
+      .head-actions { flex-direction: column-reverse; align-items: flex-end; }
       .fields { grid-template-columns: 1fr; }
       .field.full { grid-column: auto; }
-      .form-bottom { display: block; }
-      .form-caption { max-width: none; margin-bottom: 14px; }
-      .form-actions { justify-content: space-between; }
-      .btn-primary { flex: 1; justify-content: center; }
-      .meta-chip { font-size: 10px; padding: 9px 10px; }
+      .form-foot { display: block; }
+      .form-note { max-width: none; margin-bottom: 11px; }
+      .form-buttons { display: grid; grid-template-columns: auto 1fr; }
+      .result-panel { padding: 14px; }
+      .lower-grid { grid-template-columns: 1fr; }
+      .classification-row { grid-template-columns: 1fr; }
+      .score-block { text-align: left; }
+      footer { display: block; line-height: 1.8; }
+      footer span { display: block; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
@@ -187,91 +232,83 @@
 <body>
   <header class="topbar">
     <div class="topbar-inner">
-      <a class="brand" href="/" aria-label="Stroke History Explorer home">
+      <a class="brand" href="#top" aria-label="Stroke History Explorer home">
         <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2.1-5.1L14 17l2.1-5H20"/><path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5"/></svg>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2a4.3 4.3 0 0 0-7.4 3.1A4.2 4.2 0 0 0 3.5 13a4.2 4.2 0 0 0 4.2 6.8c1.2 1.2 2.8 1.3 4.3.3V3.2Z"/><path d="M12 3.2a4.3 4.3 0 0 1 7.4 3.1 4.2 4.2 0 0 1 1.1 6.7 4.2 4.2 0 0 1-4.2 6.8c-1.2 1.2-2.8 1.3-4.3.3M8.2 7.4c1.5-.1 2.3.8 2.5 2M6.8 13.8c1.8-.8 3-.2 3.7 1.1m5.3-7.5c-1.5-.1-2.3.8-2.5 2m3.9 4.4c-1.8-.8-3-.2-3.7 1.1"/></svg>
         </span>
-        <span>Stroke History Explorer<small>BRFSS 2025 · Research prototype</small></span>
+        <span>
+          <span class="brand-title">Stroke History Explorer <span class="prototype-pill">BRFSS 2025 · Research prototype</span></span>
+          <span class="brand-subtitle">CDC BRFSS 2025 · Academic demonstrator</span>
+        </span>
       </a>
-      <div class="top-actions">
-        <span class="status-pill"><i class="status-dot"></i> Academic demonstrator</span>
-        <span class="service-status" id="service-status" aria-live="polite"><i class="service-indicator"></i><span id="service-status-label">Checking model…</span></span>
-        <a class="top-link" href="https://github.com/ARGS-PYH/Stroke-prediction/blob/main/docs/RANDOM-FOREST-2025.md" target="_blank" rel="noreferrer">
-          Model report <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 17 17 7M7 7h10v10"/></svg>
-        </a>
-      </div>
+      <nav class="nav" aria-label="Main navigation">
+        <a href="#predict" aria-current="page"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m3 11 9-8 9 8M5.5 9.5V21h13V9.5M9 21v-7h6v7"/></svg>Predict</a>
+        <a href="#model"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V11m5 9V5m5 15v-7m5 7V3"/></svg>About the model</a>
+        <a href="#methods"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v7c0 1.7 3.6 3 8 3s8-1.3 8-3V5m-16 7v7c0 1.7 3.6 3 8 3s8-1.3 8-3v-7"/></svg>Data &amp; methods</a>
+        <a href="#disclaimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>Disclaimer</a>
+      </nav>
     </div>
   </header>
 
-  <main class="page">
-    <section class="hero">
+  <main class="page" id="top">
+    <section class="intro">
       <div>
-        <div class="eyebrow">BRFSS 2025 · MACHINE-LEARNING DEMONSTRATOR</div>
+        <div class="eyebrow">A survey-based machine-learning study</div>
         <h1>Explore patterns in reported stroke history.</h1>
-        <p class="hero-copy">See how a survey-weighted machine-learning model classifies a hypothetical respondent profile using eight characteristics from the 2025 U.S. Behavioral Risk Factor Surveillance System.</p>
+        <p class="intro-copy">See how a survey-weighted Logistic Regression model classifies a hypothetical respondent profile using eight characteristics from the 2025 U.S. Behavioral Risk Factor Surveillance System.</p>
       </div>
-      <div class="hero-meta" aria-label="Study summary">
-        <div class="meta-chip"><strong>354,950</strong> valid responses</div>
-        <div class="meta-chip"><strong>8</strong> study features</div>
-        <div class="meta-chip"><strong>2025</strong> survey year</div>
+      <div class="study-stats" aria-label="Study summary">
+        <div class="stat-chip"><strong>356,158</strong> respondents</div>
+        <div class="stat-chip"><strong>8</strong> predictors</div>
+        <div class="stat-chip"><strong>2025</strong> survey year</div>
       </div>
     </section>
 
     <aside class="notice" role="note">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2.8 19a1.4 1.4 0 0 0 1.2 2.1h16a1.4 1.4 0 0 0 1.2-2.1L12 3Z"/><path d="M12 9v4m0 3h.01"/></svg>
-      <div><strong>Research use only — not a medical assessment</strong><p>The model classifies self-reported previous stroke history in a U.S. survey. It does not predict future stroke, diagnose anyone, or estimate an individual's medical risk. Use hypothetical profiles only; do not enter identifiable or patient information.</p></div>
+      <div><strong>Research use only — not a medical assessment</strong><p>This model classifies self-reported previous stroke history in a U.S. survey. It does not predict future stroke, diagnose anyone, or estimate an individual's medical risk. Use hypothetical profiles only; do not enter real patient or identifiable information.</p></div>
     </aside>
 
-    <div class="workspace">
+    <div class="workspace" id="predict">
       <section class="panel form-panel" aria-labelledby="profile-title">
-        <div class="panel-heading">
-          <div>
-            <h2 id="profile-title">Build a respondent profile</h2>
-            <p>Use a hypothetical profile and select the closest BRFSS response categories.</p>
-            <div class="input-summary"><i class="input-summary-dot"></i> Age is required · 7 other fields are optional</div>
+        <div class="panel-head">
+          <div class="heading-group">
+            <div class="heading-line"><span class="heading-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.4"/><path d="M5.2 20a6.8 6.8 0 0 1 13.6 0"/></svg></span><h2 id="profile-title">Respondent profile</h2></div>
+            <p>Enter characteristics using the BRFSS response categories.</p>
           </div>
-          <div class="panel-tools">
-            <button class="sample-btn" id="sample-profile" type="button" title="Fill the form with a hypothetical example">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1m-8.6 8.6-2.1 2.1"/><circle cx="12" cy="12" r="5"/></svg>
-              Try example
-            </button>
-            <span class="step-tag">8 INPUTS</span>
+          <div class="head-actions">
+            <button class="try-btn" id="sample-profile" type="button" title="Fill the form with a hypothetical example"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m14 4 6 6M4 20l4.5-1 10-10a2.1 2.1 0 0 0-3-3l-10 10L4 20Z"/><path d="M4 4v4m-2-2h4m12 10v4m-2-2h4"/></svg>Try example</button>
+            <span class="input-count">8 INPUTS</span>
           </div>
         </div>
 
-        <form id="profile-form">
-          <div class="section-title"><span class="section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.3"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>Demographics</div>
+        <form id="profile-form" novalidate>
+          <div class="section-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></svg>Demographics</div>
           <div class="fields">
             <div class="field">
               <label for="age">Age <span class="optional">required</span></label>
-              <input id="age" name="age" type="number" min="18" max="120" inputmode="numeric" placeholder="e.g. 58" required>
+              <input id="age" name="age" type="number" min="18" max="120" step="1" inputmode="numeric" placeholder="e.g. 58" required>
               <span class="hint">Ages 80 and above are grouped as 80+ in the source data.</span>
             </div>
             <div class="field">
-              <label for="sex">Sex</label>
+              <label for="sex">Sex <span class="optional">optional</span></label>
               <select id="sex" name="sex">
-                <option value="">Not reported / prefer not to say</option>
+                <option value="">Not reported / not sure</option>
                 <option value="Female">Female</option>
                 <option value="Male">Male</option>
               </select>
             </div>
           </div>
 
-          <div class="section-title"><span class="section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-8-4.5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 6.5-8 11-8 11Z"/><path d="M4 12h4l2-3 3.5 6 2-3H20"/></svg></span>Health history</div>
+          <div class="section-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-8-4.5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 6.5-8 11-8 11Z"/><path d="M4 12h4l2-3 3.5 6 2-3H20"/></svg>Health history</div>
           <div class="fields">
             <div class="field">
               <label for="hypertension">Ever told you have high blood pressure?</label>
-              <select id="hypertension" name="hypertension">
-                <option value="">Not reported / not sure</option>
-                <option value="1">Yes</option><option value="0">No</option>
-              </select>
+              <select id="hypertension" name="hypertension"><option value="">Not reported / not sure</option><option value="1">Yes</option><option value="0">No</option></select>
             </div>
             <div class="field">
               <label for="heart">Heart attack or coronary heart disease history?</label>
-              <select id="heart" name="heart">
-                <option value="">Not reported / not sure</option>
-                <option value="1">Yes</option><option value="0">No</option>
-              </select>
+              <select id="heart" name="heart"><option value="">Not reported / not sure</option><option value="1">Yes</option><option value="0">No</option></select>
             </div>
             <div class="field">
               <label for="diabetes">Diabetes status</label>
@@ -280,17 +317,17 @@
                 <option value="Diabetes">Diabetes</option>
                 <option value="Pregnancy-only diabetes">Pregnancy-only diabetes</option>
                 <option value="No diabetes">No diabetes</option>
-                <option value="Prediabetes or borderline diabetes">Prediabetes / borderline</option>
+                <option value="Prediabetes or borderline diabetes">Prediabetes / borderline diabetes</option>
               </select>
             </div>
             <div class="field">
               <label for="bmi">Body mass index (BMI) <span class="optional">optional</span></label>
               <input id="bmi" name="bmi" type="number" min="10" max="100" step="0.1" inputmode="decimal" placeholder="e.g. 27.4">
-              <span class="hint">Leave blank if not available.</span>
+              <span class="hint">Leave blank when not available.</span>
             </div>
           </div>
 
-          <div class="section-title"><span class="section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 17.5c1.3-3.7 2.8-5.5 4.6-5.5s2.5 3 4.2 3 2.4-6 4.2-6 2.5 2.2 3 3.5"/><path d="M4 20h16M6 6l2 2m0-2L6 8"/></svg></span>Lifestyle</div>
+          <div class="section-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 18c1.5-3.5 3-5 4.8-5s2.5 3 4.2 3 2.4-6 4.2-6S19.5 12 20 13"/><path d="M4 21h16"/></svg>Lifestyle</div>
           <div class="fields">
             <div class="field">
               <label for="smoking">Smoking status</label>
@@ -303,19 +340,16 @@
               </select>
             </div>
             <div class="field">
-              <label for="activity">Any leisure-time physical activity in the past 30 days?</label>
-              <select id="activity" name="activity">
-                <option value="">Not reported / not sure</option>
-                <option value="1">Yes</option><option value="0">No</option>
-              </select>
+              <label for="activity">Leisure-time physical activity in past 30 days?</label>
+              <select id="activity" name="activity"><option value="">Not reported / not sure</option><option value="1">Yes</option><option value="0">No</option></select>
             </div>
           </div>
 
-          <div class="form-bottom">
-            <p class="form-caption">Unanswered values remain missing and are handled by the model's training-fitted preprocessing pipeline.</p>
-            <div class="form-actions">
+          <div class="form-foot">
+            <p class="form-note">Unanswered predictors remain missing and are handled by the model's fitted preprocessing pipeline.</p>
+            <div class="form-buttons">
               <button class="btn btn-quiet" type="reset">Clear</button>
-              <button class="btn btn-primary" id="submit-button" type="submit">Run classification <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
+              <button class="btn btn-primary" id="submit-button" type="submit">Classify survey response <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
             </div>
           </div>
           <div id="form-error" class="error-box" role="alert" hidden></div>
@@ -324,45 +358,86 @@
 
       <aside class="right-column" aria-label="Model output and study information">
         <section class="panel result-panel" aria-live="polite" aria-labelledby="result-title">
+          <div class="model-status" id="model-status"><i class="status-light" aria-hidden="true"></i><strong id="model-status-label">Checking model…</strong><span class="status-divider" aria-hidden="true"></span><span class="model-name" id="model-name">Survey-weighted Logistic Regression</span></div>
           <div class="result-head">
-            <div><div class="result-kicker">MODEL OUTPUT</div><h2 id="result-title">Classification result</h2></div>
-            <span class="result-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 18V6m0 12h16"/><path d="m7 14 3-3 3 2 5-6"/></svg></span>
+            <div><h2 id="result-title">Classification result</h2><p>Classification of the BRFSS 2025 self-reported outcome.</p></div>
+            <span class="result-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5M7.5 10.5l2 2 4-4"/></svg></span>
           </div>
           <div class="empty-state" id="empty-state">
-            <div class="empty-illustration"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5"/><path d="M4 12h4l2.1-4.5L14 17l2.1-5H20"/><path d="M17 3v5m-2.5-2.5h5"/></svg></div>
+            <div class="empty-art"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5"/><path d="M4 12h4l2.1-4.5L14 17l2.1-5H20"/><path d="M17 3v5m-2.5-2.5h5"/></svg></div>
             <h3>Ready when you are</h3>
-            <p>Complete the profile and run the model to see how it classifies this survey-style response.</p>
+            <p>Complete the profile and run the model to see its classification of this hypothetical survey response.</p>
           </div>
-          <div class="result-content" id="result-content" hidden>
-            <div class="class-label" id="class-label"><i class="status-dot"></i><span id="class-text"></span></div>
-            <div class="score-row"><div class="score-value" id="score-value">—</div><span class="score-unit">model score</span></div>
-            <p class="score-caption">Model score for the BRFSS “Yes” response class — not a personal medical probability.</p>
-            <div class="meter" role="img" aria-label="Model score compared with the selected classification threshold"><div class="meter-fill" id="meter-fill"></div><div class="meter-threshold" id="meter-threshold"></div></div>
-            <div class="meter-legend"><span id="scale-min">0%</span><span id="threshold-label">Threshold: 3.39%</span><span id="scale-max">5%</span></div>
+          <div class="result-body" id="result-content" hidden>
+            <div class="classification-row">
+              <div><span class="score-label">CLASSIFICATION</span><div class="class-tag" id="class-label"><i class="class-dot" aria-hidden="true"></i><span id="class-text"></span></div></div>
+              <div class="score-block"><span class="score-label">MODEL SCORE</span><div class="score-value" id="score-value">—</div></div>
+            </div>
+            <p class="score-caption">Model estimate for the BRFSS “Yes” response class — not an individual's medical probability.</p>
+            <div class="meter" role="img" id="score-meter" aria-label="Model score compared with the selected classification threshold"><div class="meter-fill" id="meter-fill"></div><div class="meter-marker" id="meter-marker"></div></div>
+            <div class="meter-legend"><span id="scale-min">0%</span><span class="threshold-pill" id="threshold-label">Selected threshold: 3.39%</span><span id="scale-max">10%</span></div>
             <p class="result-explanation" id="result-explanation"></p>
           </div>
           <div class="error-box" id="api-error" role="alert" hidden></div>
         </section>
 
-        <section class="panel metrics-panel">
-          <div class="mini-heading"><h3>Model evaluation snapshot</h3><span>Held-out sample</span></div>
-          <div class="metric-grid">
-            <div class="metric"><strong>0.813</strong><span>Weighted ROC-AUC</span></div>
-            <div class="metric"><strong>0.142</strong><span>Weighted PR-AUC</span></div>
-            <div class="metric"><strong>78.7%</strong><span>Weighted sensitivity</span></div>
-            <div class="metric"><strong>8.8%</strong><span>Weighted precision</span></div>
-          </div>
-          <p class="metrics-note">Precision is low: many profiles classified into the “Yes” group did not report a previous stroke. These are weighted point estimates; design-based confidence intervals have not been calculated.</p>
-        </section>
-
-        <section class="panel about-panel">
-          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>What is being classified?</h3>
-          <p>The target is the respondent's answer to: “Has a health professional ever told you that you had a stroke?” It is a measure of <strong>self-reported previous stroke history</strong>, not future stroke incidence.</p>
-          <p>The model uses U.S. BRFSS 2025 survey data. Its results have not been validated for Nigerian populations or clinical use.</p>
-          <a class="source-link" href="https://www.cdc.gov/brfss/annual_data/2025/annual_2025.html" target="_blank" rel="noreferrer">CDC 2025 data & documentation <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
-        </section>
+        <div class="lower-grid">
+          <section class="info-card">
+            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V11m5 9V5m5 15v-7m5 7V3"/></svg>What does this mean?</h3>
+            <ul>
+              <li>The model classifies a survey-style response, not a person's future health.</li>
+              <li>The score is compared with a threshold selected using development data.</li>
+              <li>The output is not a diagnosis or personal medical probability.</li>
+            </ul>
+          </section>
+          <section class="info-card reminder">
+            <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>Key reminders</h3>
+            <ul>
+              <li>The source is self-reported U.S. survey data (BRFSS 2025).</li>
+              <li>It classifies reported prior stroke history, not future incidence.</li>
+              <li>It has not been validated for Nigerian populations or clinical use.</li>
+            </ul>
+          </section>
+        </div>
       </aside>
     </div>
+
+    <section class="details-section" id="model" aria-labelledby="model-title">
+      <div class="section-heading"><div><h2 id="model-title">About the model</h2><p>What the application uses and how its results were evaluated.</p></div></div>
+      <div class="details-grid">
+        <article class="detail-card"><h3>Outcome being classified</h3><p>The target is CVDSTRK3: whether a health professional has ever told the respondent they had a stroke. This is cross-sectional, self-reported prior history — not future stroke incidence.</p></article>
+        <article class="detail-card"><h3>Model and threshold</h3><p>The demonstrator uses the primary eight-feature survey-weighted Logistic Regression pipeline. Its threshold was selected using weighted Youden's J on development-only out-of-fold predictions; the held-out test set was not used to choose it.</p></article>
+        <article class="detail-card"><h3>Interpret with care</h3><p>Weighted precision is low, so many positive classifications did not correspond to respondents reporting previous stroke. The returned model score is not an individual's personal medical probability.</p></article>
+      </div>
+      <div class="metric-strip" aria-label="Held-out sample model evaluation">
+        <div class="metric"><strong>0.8134</strong><span>Weighted ROC-AUC</span></div>
+        <div class="metric"><strong>0.1421</strong><span>Weighted PR-AUC</span></div>
+        <div class="metric"><strong>78.71%</strong><span>Weighted sensitivity</span></div>
+        <div class="metric"><strong>8.80%</strong><span>Weighted precision</span></div>
+      </div>
+      <p class="precision-note">Held-out weighted point estimates for the primary eight-feature Logistic Regression model. Design-based confidence intervals have not been calculated.</p>
+    </section>
+
+    <section class="details-section" id="methods" aria-labelledby="methods-title">
+      <div class="section-heading"><div><h2 id="methods-title">Data &amp; methods</h2><p>Eight predictors used by the current model demonstrator.</p></div></div>
+      <div class="panel" style="padding:16px">
+        <div class="details-grid">
+          <article class="detail-card"><h3>Demographics</h3><p>Age (80+ top-coded in the source) and sex.</p></article>
+          <article class="detail-card"><h3>Health history</h3><p>Hypertension, heart attack / coronary heart disease history, diabetes status, and body mass index.</p></article>
+          <article class="detail-card"><h3>Lifestyle</h3><p>Smoking status and leisure-time physical activity in the past 30 days.</p></article>
+        </div>
+        <div class="predictor-list" aria-label="Predictor fields"><span class="predictor">Age</span><span class="predictor">Sex</span><span class="predictor">Hypertension</span><span class="predictor">CHD / MI history</span><span class="predictor">Diabetes status</span><span class="predictor">BMI</span><span class="predictor">Smoking status</span><span class="predictor">Physical activity</span></div>
+        <a class="source-link" href="https://www.cdc.gov/brfss/annual_data/2025/annual_2025.html" target="_blank" rel="noopener noreferrer">CDC 2025 data and documentation <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+      </div>
+    </section>
+
+    <section class="details-section" id="disclaimer" aria-labelledby="disclaimer-title">
+      <div class="section-heading"><div><h2 id="disclaimer-title">Disclaimer</h2><p>Research scope and appropriate use.</p></div></div>
+      <div class="disclaimer-card">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2.8 19a1.4 1.4 0 0 0 1.2 2.1h16a1.4 1.4 0 0 0 1.2-2.1L12 3Z"/><path d="M12 9v4m0 3h.01"/></svg>
+        <div><strong>Academic demonstration only. Not for diagnosis, treatment, screening, or clinical decision-making.</strong><p>The BRFSS is a U.S. population survey. These results do not establish performance in Nigeria or any other population. Some predictors may have occurred after the reported stroke, so temporal order is not established. Model explanations, external validation, design-based confidence intervals, and clinical validation have not been implemented. Use hypothetical profiles only.</p></div>
+      </div>
+    </section>
 
     <footer><span><strong>Stroke History Explorer</strong> · Final-year research demonstrator</span><span>CDC BRFSS 2025 · Survey-weighted Logistic Regression · Not for clinical use</span></footer>
   </main>
@@ -374,6 +449,10 @@
     const resultContent = document.getElementById('result-content');
     const apiError = document.getElementById('api-error');
     const formError = document.getElementById('form-error');
+    const modelStatus = document.getElementById('model-status');
+    const modelStatusLabel = document.getElementById('model-status-label');
+    const modelName = document.getElementById('model-name');
+    const initialSubmitLabel = submitButton.innerHTML;
 
     const selectedBinary = (value) => value === '' ? null : Number(value);
     const selectedCategory = (value) => value === '' ? null : value;
@@ -389,10 +468,12 @@
       const positive = result.classification === 1;
       const score = Number(result.positive_class_probability);
       const threshold = Number(result.threshold);
+      if (!Number.isFinite(score) || !Number.isFinite(threshold)) {
+        throw new Error('The model returned an invalid score. Please try again.');
+      }
       const pct = score * 100;
       const thresholdPct = threshold * 100;
-      // Zoom the visual scale so the selected threshold remains readable.
-      const scaleMax = Math.min(100, Math.max(5, Math.ceil(Math.max(pct, thresholdPct) * 1.25)));
+      const scaleMax = Math.min(100, Math.max(10, Math.ceil((Math.max(pct, thresholdPct) * 1.35) / 5) * 5));
 
       emptyState.hidden = true;
       resultContent.hidden = false;
@@ -400,11 +481,14 @@
       document.getElementById('class-text').textContent = result.classification_label;
       document.getElementById('score-value').textContent = pct.toFixed(2) + '%';
       document.getElementById('meter-fill').style.width = Math.max(0, Math.min(100, (pct / scaleMax) * 100)) + '%';
-      document.getElementById('meter-threshold').style.left = Math.max(0, Math.min(100, (thresholdPct / scaleMax) * 100)) + '%';
+      document.getElementById('meter-marker').style.left = Math.max(0, Math.min(100, (thresholdPct / scaleMax) * 100)) + '%';
       document.getElementById('scale-min').textContent = '0%';
       document.getElementById('scale-max').textContent = scaleMax.toFixed(0) + '%';
-      document.getElementById('threshold-label').textContent = 'Threshold: ' + thresholdPct.toFixed(2) + '%';
-      document.getElementById('result-explanation').textContent = 'How to read this: the model score is ' + pct.toFixed(2) + '%, compared with the ' + thresholdPct.toFixed(2) + '% development-selected threshold. ' + (positive ? 'The score is at or above the threshold, so the profile is classified in the survey “Yes” group.' : 'The score is below the threshold, so the profile is classified in the survey “No” group.') + ' This is not a personal medical probability.';
+      document.getElementById('threshold-label').textContent = 'Selected threshold: ' + thresholdPct.toFixed(2) + '%';
+      document.getElementById('score-meter').setAttribute('aria-label', 'Model score ' + pct.toFixed(2) + ' percent. Selected classification threshold ' + thresholdPct.toFixed(2) + ' percent. Display scale zero to ' + scaleMax.toFixed(0) + ' percent.');
+      const comparison = positive ? 'The score is at or above the selected threshold, so this profile is classified in the BRFSS “Yes” response group.' : 'The score is below the selected threshold, so this profile is classified in the BRFSS “No” response group.';
+      document.getElementById('result-explanation').textContent = comparison + ' ' + result.interpretation;
+      if (result.model) modelName.textContent = result.model;
     }
 
     form.addEventListener('submit', async (event) => {
@@ -413,9 +497,17 @@
       if (!form.reportValidity()) return;
 
       const age = Number(form.elements.age.value);
+      const bmiValue = form.elements.bmi.value;
       if (!Number.isInteger(age) || age < 18 || age > 120) {
         formError.textContent = 'Enter an age from 18 to 120. Ages 80 and above are grouped as 80+.';
         formError.hidden = false;
+        form.elements.age.focus();
+        return;
+      }
+      if (bmiValue !== '' && (!Number.isFinite(Number(bmiValue)) || Number(bmiValue) < 10 || Number(bmiValue) > 100)) {
+        formError.textContent = 'Enter a BMI from 10 to 100, or leave it blank.';
+        formError.hidden = false;
+        form.elements.bmi.focus();
         return;
       }
 
@@ -425,7 +517,7 @@
         hypertension: selectedBinary(form.elements.hypertension.value),
         chd_or_mi_history: selectedBinary(form.elements.heart.value),
         diabetes_status: selectedCategory(form.elements.diabetes.value),
-        bmi: form.elements.bmi.value === '' ? null : Number(form.elements.bmi.value),
+        bmi: bmiValue === '' ? null : Number(bmiValue),
         smoking_status: selectedCategory(form.elements.smoking.value),
         physical_activity_30d: selectedBinary(form.elements.activity.value)
       };
@@ -439,7 +531,9 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-        const result = await response.json();
+        let result;
+        try { result = await response.json(); }
+        catch { throw new Error('The server returned an unreadable response. Please try again.'); }
         if (!response.ok) throw new Error(result.detail || 'The model could not process this profile.');
         showResult(result);
       } catch (error) {
@@ -447,7 +541,7 @@
         apiError.hidden = false;
       } finally {
         submitButton.disabled = false;
-        submitButton.innerHTML = 'Run classification <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>';
+        submitButton.innerHTML = initialSubmitLabel;
       }
     });
 
@@ -476,22 +570,22 @@
     });
 
     async function checkModelStatus() {
-      const status = document.getElementById('service-status');
-      const label = document.getElementById('service-status-label');
       try {
-        const response = await fetch('/health');
-        if (!response.ok) throw new Error('Health check failed');
+        const response = await fetch('/health', { headers: { 'Accept': 'application/json' } });
+        if (!response.ok) throw new Error('Model health check failed');
         const health = await response.json();
         const ready = Boolean(health.model_loaded);
-        status.classList.toggle('is-online', ready);
-        status.classList.toggle('is-offline', !ready);
-        label.textContent = ready ? 'Model ready' : 'Model unavailable';
+        modelStatus.classList.toggle('ready', ready);
+        modelStatus.classList.toggle('offline', !ready);
+        modelStatusLabel.textContent = ready ? 'Model ready' : 'Model unavailable';
+        if (health.model_name) modelName.textContent = health.model_name;
       } catch {
-        status.classList.remove('is-online');
-        status.classList.add('is-offline');
-        label.textContent = 'Model offline';
+        modelStatus.classList.remove('ready');
+        modelStatus.classList.add('offline');
+        modelStatusLabel.textContent = 'Model offline';
       }
     }
+
     checkModelStatus();
   </script>
 </body>
