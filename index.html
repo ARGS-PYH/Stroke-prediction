@@ -33,6 +33,12 @@
     .top-link svg { width: 15px; height: 15px; }
     .status-pill, .eyebrow { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; font-size: 10px; line-height: 1; font-weight: 800; letter-spacing: .105em; text-transform: uppercase; }
     .status-pill { color: #246a6c; background: #e8f5f3; padding: 9px 12px; }
+    .service-status { display: inline-flex; align-items: center; gap: 7px; color: #8996a4; font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .service-indicator { width: 7px; height: 7px; border-radius: 50%; background: #c5a36e; box-shadow: 0 0 0 3px rgba(197,163,110,.13); }
+    .service-status.is-online { color: #397c70; }
+    .service-status.is-online .service-indicator { background: #2c9b83; box-shadow: 0 0 0 3px rgba(44,155,131,.13); }
+    .service-status.is-offline { color: #a05b53; }
+    .service-status.is-offline .service-indicator { background: #c96b60; box-shadow: 0 0 0 3px rgba(201,107,96,.13); }
     .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #2b9a89; }
     .page { padding: 48px 0 36px; }
     .hero { display: flex; justify-content: space-between; align-items: flex-end; gap: 30px; margin-bottom: 28px; }
@@ -54,6 +60,12 @@
     .panel-heading h2 { margin: 0; font-size: 18px; color: var(--navy); letter-spacing: -.025em; }
     .panel-heading p { margin: 5px 0 0; font-size: 12px; color: var(--muted); }
     .step-tag { border-radius: 8px; background: #f0f4f8; color: #64758a; padding: 7px 9px; font-size: 10px; font-weight: 800; letter-spacing: .08em; white-space: nowrap; }
+    .panel-tools { display: flex; align-items: center; gap: 9px; flex: 0 0 auto; }
+    .sample-btn { display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 0 10px; border: 1px solid #dce8e8; border-radius: 9px; color: var(--teal-dark); background: #f6fbfa; cursor: pointer; font-size: 10px; font-weight: 800; transition: background .15s ease, border-color .15s ease, transform .15s ease; }
+    .sample-btn:hover { background: var(--teal-soft); border-color: #b9dcd8; transform: translateY(-1px); }
+    .sample-btn svg { width: 13px; height: 13px; }
+    .input-summary { display: flex; align-items: center; gap: 7px; margin-top: 9px; color: #8291a0; font-size: 10px; }
+    .input-summary-dot { width: 6px; height: 6px; border-radius: 50%; background: #d19a49; }
     .section-title { display: flex; align-items: center; gap: 9px; margin: 22px 0 13px; padding-bottom: 9px; border-bottom: 1px solid #edf1f5; color: #42576e; font-size: 11px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
     .section-title:first-of-type { margin-top: 0; }
     .section-icon { width: 25px; height: 25px; display: grid; place-items: center; border-radius: 8px; color: var(--teal-dark); background: var(--teal-soft); }
@@ -150,6 +162,12 @@
       footer { display: block; line-height: 1.8; }
       footer span { display: block; }
     }
+    @media (max-width: 560px) {
+      .panel-heading { align-items: flex-start; }
+      .panel-tools { flex-direction: column-reverse; align-items: flex-end; gap: 7px; }
+      .sample-btn { min-height: 31px; }
+      .service-status { display: none; }
+    }
     @media (max-width: 430px) {
       .status-pill { font-size: 9px; padding: 8px 9px; }
       .brand { font-size: 13px; }
@@ -177,6 +195,7 @@
       </a>
       <div class="top-actions">
         <span class="status-pill"><i class="status-dot"></i> Academic demonstrator</span>
+        <span class="service-status" id="service-status" aria-live="polite"><i class="service-indicator"></i><span id="service-status-label">Checking model…</span></span>
         <a class="top-link" href="https://github.com/ARGS-PYH/Stroke-prediction/blob/main/docs/RANDOM-FOREST-2025.md" target="_blank" rel="noreferrer">
           Model report <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 17 17 7M7 7h10v10"/></svg>
         </a>
@@ -206,8 +225,18 @@
     <div class="workspace">
       <section class="panel form-panel" aria-labelledby="profile-title">
         <div class="panel-heading">
-          <div><h2 id="profile-title">Build a respondent profile</h2><p>Enter values that match the BRFSS survey response categories.</p></div>
-          <span class="step-tag">8 INPUTS</span>
+          <div>
+            <h2 id="profile-title">Build a respondent profile</h2>
+            <p>Use a hypothetical profile and select the closest BRFSS response categories.</p>
+            <div class="input-summary"><i class="input-summary-dot"></i> Age is required · 7 other fields are optional</div>
+          </div>
+          <div class="panel-tools">
+            <button class="sample-btn" id="sample-profile" type="button" title="Fill the form with a hypothetical example">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3m0 12v3M3 12h3m12 0h3M5.6 5.6l2.1 2.1m8.6 8.6 2.1 2.1m0-12.8-2.1 2.1m-8.6 8.6-2.1 2.1"/><circle cx="12" cy="12" r="5"/></svg>
+              Try example
+            </button>
+            <span class="step-tag">8 INPUTS</span>
+          </div>
         </div>
 
         <form id="profile-form">
@@ -307,9 +336,9 @@
           <div class="result-content" id="result-content" hidden>
             <div class="class-label" id="class-label"><i class="status-dot"></i><span id="class-text"></span></div>
             <div class="score-row"><div class="score-value" id="score-value">—</div><span class="score-unit">model score</span></div>
-            <p class="score-caption">Estimated probability of the BRFSS “Yes” response class</p>
-            <div class="meter" role="img" aria-label="Model score relative to classification threshold"><div class="meter-fill" id="meter-fill"></div><div class="meter-threshold" id="meter-threshold"></div></div>
-            <div class="meter-legend"><span>0%</span><span id="threshold-label">Selected threshold: 3.39%</span><span>100%</span></div>
+            <p class="score-caption">Model score for the BRFSS “Yes” response class — not a personal medical probability.</p>
+            <div class="meter" role="img" aria-label="Model score compared with the selected classification threshold"><div class="meter-fill" id="meter-fill"></div><div class="meter-threshold" id="meter-threshold"></div></div>
+            <div class="meter-legend"><span id="scale-min">0%</span><span id="threshold-label">Threshold: 3.39%</span><span id="scale-max">5%</span></div>
             <p class="result-explanation" id="result-explanation"></p>
           </div>
           <div class="error-box" id="api-error" role="alert" hidden></div>
@@ -362,16 +391,20 @@
       const threshold = Number(result.threshold);
       const pct = score * 100;
       const thresholdPct = threshold * 100;
+      // Zoom the visual scale so the selected threshold remains readable.
+      const scaleMax = Math.min(100, Math.max(5, Math.ceil(Math.max(pct, thresholdPct) * 1.25)));
 
       emptyState.hidden = true;
       resultContent.hidden = false;
       document.getElementById('class-label').classList.toggle('negative', !positive);
       document.getElementById('class-text').textContent = result.classification_label;
       document.getElementById('score-value').textContent = pct.toFixed(2) + '%';
-      document.getElementById('meter-fill').style.width = Math.max(0, Math.min(100, pct)) + '%';
-      document.getElementById('meter-threshold').style.left = thresholdPct + '%';
-      document.getElementById('threshold-label').textContent = 'Selected threshold: ' + thresholdPct.toFixed(2) + '%';
-      document.getElementById('result-explanation').innerHTML = '<strong>How to read this:</strong> the model score is ' + pct.toFixed(2) + '%, compared with the ' + thresholdPct.toFixed(2) + '% development-selected threshold. ' + (positive ? 'The score is at or above the threshold, so the profile is classified in the survey “Yes” group.' : 'The score is below the threshold, so the profile is classified in the survey “No” group.') + ' This is not a personal medical probability.';
+      document.getElementById('meter-fill').style.width = Math.max(0, Math.min(100, (pct / scaleMax) * 100)) + '%';
+      document.getElementById('meter-threshold').style.left = Math.max(0, Math.min(100, (thresholdPct / scaleMax) * 100)) + '%';
+      document.getElementById('scale-min').textContent = '0%';
+      document.getElementById('scale-max').textContent = scaleMax.toFixed(0) + '%';
+      document.getElementById('threshold-label').textContent = 'Threshold: ' + thresholdPct.toFixed(2) + '%';
+      document.getElementById('result-explanation').textContent = 'How to read this: the model score is ' + pct.toFixed(2) + '%, compared with the ' + thresholdPct.toFixed(2) + '% development-selected threshold. ' + (positive ? 'The score is at or above the threshold, so the profile is classified in the survey “Yes” group.' : 'The score is below the threshold, so the profile is classified in the survey “No” group.') + ' This is not a personal medical probability.';
     }
 
     form.addEventListener('submit', async (event) => {
@@ -423,6 +456,43 @@
       resultContent.hidden = true;
       emptyState.hidden = false;
     });
+
+    document.getElementById('sample-profile').addEventListener('click', () => {
+      const example = {
+        age: '68',
+        sex: 'Male',
+        hypertension: '1',
+        heart: '0',
+        diabetes: 'No diabetes',
+        bmi: '29.4',
+        smoking: 'Former smoker',
+        activity: '1'
+      };
+      for (const [name, value] of Object.entries(example)) form.elements[name].value = value;
+      clearMessages();
+      resultContent.hidden = true;
+      emptyState.hidden = false;
+      form.elements.age.focus();
+    });
+
+    async function checkModelStatus() {
+      const status = document.getElementById('service-status');
+      const label = document.getElementById('service-status-label');
+      try {
+        const response = await fetch('/health');
+        if (!response.ok) throw new Error('Health check failed');
+        const health = await response.json();
+        const ready = Boolean(health.model_loaded);
+        status.classList.toggle('is-online', ready);
+        status.classList.toggle('is-offline', !ready);
+        label.textContent = ready ? 'Model ready' : 'Model unavailable';
+      } catch {
+        status.classList.remove('is-online');
+        status.classList.add('is-offline');
+        label.textContent = 'Model offline';
+      }
+    }
+    checkModelStatus();
   </script>
 </body>
 </html>
