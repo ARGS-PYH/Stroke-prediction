@@ -1,134 +1,428 @@
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Stroke Risk Prediction System</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-
-<nav class="navbar navbar-dark bg-primary mb-4">
-  <div class="container-fluid">
-    <span class="navbar-brand mb-0 h1">Explainable Stroke Risk Prediction</span>
-  </div>
-</nav>
-
-<div class="container">
-    <div class="card shadow-lg rounded-4">
-        <div class="card-body p-4">
-            <h4 class="card-title mb-3">Patient Information</h4>
-            <form id="strokeForm">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Age</label>
-                        <input type="number" class="form-control" required />
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Gender</label>
-                        <select class="form-select">
-                            <option>Male</option>
-                            <option>Female</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Hypertension</label>
-                        <select class="form-select">
-                            <option>No</option>
-                            <option>Yes</option>
-                        </select>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Heart Disease</label>
-                        <select class="form-select">
-                            <option>No</option>
-                            <option>Yes</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Average Glucose Level</label>
-                        <input type="number" class="form-control" />
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">BMI</label>
-                        <input type="number" class="form-control" />
-                    </div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Smoking Status</label>
-                    <select class="form-select">
-                        <option>Never smoked</option>
-                        <option>Formerly smoked</option>
-                        <option>Smokes</option>
-                        <option>Unknown</option>
-                    </select>
-                </div>
-
-                <button type="submit" class="btn btn-primary w-100 mt-3">Predict Stroke Risk</button>
-            </form>
-        </div>
-    </div>
-
-    <div class="card mt-4 shadow-sm rounded-4">
-        <div class="card-body">
-            <h5>Prediction Result</h5>
-            <p><strong>Stroke Risk:</strong> <span id="riskScore" class="text-danger">--%</span></p>
-            <p><strong>Risk Level:</strong> <span id="riskLevel">--</span></p>
-            <hr>
-            <h6>Explainable AI Insight</h6>
-            <p id="explanation" class="text-muted">
-                Feature-level explanations (SHAP/LIME) will appear here to show why the model made this prediction.
-            </p>
-        </div>
-    </div>
-</div>
-
-<footer class="text-center text-muted mt-5 mb-3">
-    <small>Final Year Project – B.Sc Computer Science | Explainable AI for Stroke Prediction</small>
-</footer>
-
-<script>
-
-document.getElementById('strokeForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-
-    const inputs = document.querySelectorAll('input[type="number"]');
-    const selects = document.querySelectorAll('select');
-
-    const payload = {
-        age: parseInt(inputs[0].value),
-        hypertension: selects[1].value === 'Yes' ? 1 : 0,
-        heart_disease: selects[2].value === 'Yes' ? 1 : 0,
-        avg_glucose_level: parseFloat(inputs[1].value),
-        bmi: parseFloat(inputs[2].value)
-    };
-
-    try {
-        const response = await fetch('http://127.0.0.1:8000/predict', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) throw new Error('Network response was not ok');
-
-        const result = await response.json();
-
-        document.getElementById('riskScore').innerText = (result.risk_score * 100).toFixed(2) + '%';
-        document.getElementById('riskLevel').innerText = result.risk_level;
-        document.getElementById('explanation').innerText = result.explanation;
-
-    } catch (error) {
-        alert('Backend not reachable. Make sure the FastAPI server is running and accessible.');
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f7fb">
+  <meta name="description" content="An academic machine-learning demonstrator exploring self-reported stroke history in the 2025 BRFSS survey.">
+  <title>Stroke History Explorer · BRFSS 2025</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17263a; --muted: #65758a; --soft-muted: #8795a7;
+      --line: #e4eaf1; --surface: #fff; --canvas: #f4f7fb;
+      --navy: #132b46; --teal: #087f80; --teal-dark: #066a6c;
+      --teal-soft: #e7f5f3; --amber-soft: #fff7e9; --red: #9d4b45;
+      --red-soft: #fff0ee; --shadow: 0 18px 50px rgba(24,48,75,.07);
+      --radius: 20px;
     }
-});
-</script>
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--canvas); color: var(--ink); font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; line-height: 1.5; }
+    button, input, select { font: inherit; }
+    a { color: var(--teal-dark); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .topbar { height: 76px; display: flex; align-items: center; border-bottom: 1px solid rgba(222,231,240,.9); background: rgba(255,255,255,.88); backdrop-filter: blur(12px); }
+    .topbar-inner, .page { width: min(1180px, calc(100% - 48px)); margin: 0 auto; }
+    .topbar-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .brand { display: flex; align-items: center; gap: 12px; color: var(--ink); font-weight: 750; letter-spacing: -.025em; }
+    .brand-mark { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; color: white; background: linear-gradient(145deg,#0a8582,#14566e); box-shadow: 0 7px 16px rgba(8,127,128,.2); }
+    .brand-mark svg { width: 22px; height: 22px; }
+    .brand small { display: block; color: var(--soft-muted); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; margin-top: 1px; }
+    .top-actions { display: flex; align-items: center; gap: 20px; color: var(--muted); font-size: 13px; font-weight: 600; }
+    .top-link { display: inline-flex; align-items: center; gap: 7px; }
+    .top-link svg { width: 15px; height: 15px; }
+    .status-pill, .eyebrow { display: inline-flex; align-items: center; gap: 8px; border-radius: 999px; font-size: 10px; line-height: 1; font-weight: 800; letter-spacing: .105em; text-transform: uppercase; }
+    .status-pill { color: #246a6c; background: #e8f5f3; padding: 9px 12px; }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #2b9a89; }
+    .page { padding: 48px 0 36px; }
+    .hero { display: flex; justify-content: space-between; align-items: flex-end; gap: 30px; margin-bottom: 28px; }
+    .eyebrow { color: var(--teal-dark); margin-bottom: 13px; }
+    .eyebrow::before { content: ""; width: 20px; height: 1px; background: currentColor; }
+    h1 { margin: 0; max-width: 670px; color: var(--navy); font-size: clamp(32px,4vw,46px); line-height: 1.08; letter-spacing: -.045em; font-weight: 760; }
+    .hero-copy { max-width: 650px; margin: 14px 0 0; color: var(--muted); font-size: 15px; line-height: 1.7; }
+    .hero-meta { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; padding-bottom: 4px; }
+    .meta-chip { padding: 10px 13px; border: 1px solid var(--line); border-radius: 11px; background: rgba(255,255,255,.75); color: #52647a; font-size: 11px; font-weight: 700; white-space: nowrap; }
+    .meta-chip strong { color: var(--navy); }
+    .notice { display: flex; align-items: flex-start; gap: 13px; padding: 15px 17px; border: 1px solid #eadfcb; background: #fffaf1; border-radius: 14px; color: #775c33; margin-bottom: 22px; }
+    .notice svg { width: 19px; height: 19px; flex: 0 0 auto; margin-top: 1px; }
+    .notice strong { display: block; color: #6c4c1e; font-size: 12px; margin-bottom: 2px; }
+    .notice p { margin: 0; font-size: 12px; line-height: 1.55; }
+    .workspace { display: grid; grid-template-columns: minmax(0,1.32fr) minmax(330px,.88fr); gap: 22px; align-items: start; }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); }
+    .form-panel { padding: 26px 28px 24px; }
+    .panel-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; margin-bottom: 22px; }
+    .panel-heading h2 { margin: 0; font-size: 18px; color: var(--navy); letter-spacing: -.025em; }
+    .panel-heading p { margin: 5px 0 0; font-size: 12px; color: var(--muted); }
+    .step-tag { border-radius: 8px; background: #f0f4f8; color: #64758a; padding: 7px 9px; font-size: 10px; font-weight: 800; letter-spacing: .08em; white-space: nowrap; }
+    .section-title { display: flex; align-items: center; gap: 9px; margin: 22px 0 13px; padding-bottom: 9px; border-bottom: 1px solid #edf1f5; color: #42576e; font-size: 11px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+    .section-title:first-of-type { margin-top: 0; }
+    .section-icon { width: 25px; height: 25px; display: grid; place-items: center; border-radius: 8px; color: var(--teal-dark); background: var(--teal-soft); }
+    .section-icon svg { width: 14px; height: 14px; }
+    .fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); column-gap: 16px; row-gap: 15px; }
+    .field { min-width: 0; }
+    .field.full { grid-column: 1 / -1; }
+    label { display: block; margin-bottom: 7px; color: #30445b; font-size: 12px; font-weight: 700; }
+    .optional { color: #92a0ae; font-weight: 500; font-size: 10px; margin-left: 4px; }
+    input, select { width: 100%; min-height: 43px; padding: 10px 12px; color: #263c53; background: #fff; border: 1px solid #dce4ec; border-radius: 9px; outline: none; font-size: 12px; transition: border-color .18s ease, box-shadow .18s ease; }
+    input::placeholder { color: #a4afba; }
+    input:focus, select:focus { border-color: #51a8a0; box-shadow: 0 0 0 3px rgba(8,127,128,.10); }
+    .hint { display: block; margin-top: 5px; color: #8997a6; font-size: 10px; line-height: 1.4; }
+    .form-bottom { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-top: 1px solid #edf1f5; margin-top: 22px; padding-top: 18px; }
+    .form-caption { max-width: 235px; color: #8895a3; font-size: 10px; line-height: 1.5; }
+    .form-actions { display: flex; align-items: center; gap: 11px; }
+    .btn { min-height: 44px; border: 0; border-radius: 10px; padding: 0 17px; cursor: pointer; font-size: 12px; font-weight: 750; transition: transform .15s ease, background .15s ease, box-shadow .15s ease; }
+    .btn:focus-visible { outline: 3px solid rgba(8,127,128,.25); outline-offset: 2px; }
+    .btn:disabled { cursor: wait; opacity: .7; }
+    .btn-primary { display: inline-flex; align-items: center; gap: 9px; color: white; background: var(--teal); box-shadow: 0 7px 16px rgba(8,127,128,.16); }
+    .btn-primary:hover:not(:disabled) { background: var(--teal-dark); transform: translateY(-1px); }
+    .btn-primary svg { width: 15px; height: 15px; }
+    .btn-quiet { color: #607286; background: transparent; padding: 0 8px; }
+    .btn-quiet:hover { color: var(--navy); background: #f5f7fa; }
+    .right-column { display: grid; gap: 17px; }
+    .result-panel { padding: 24px; min-height: 304px; overflow: hidden; position: relative; }
+    .result-panel::before { content: ""; position: absolute; right: -76px; top: -82px; width: 190px; height: 190px; border-radius: 50%; border: 1px solid rgba(8,127,128,.08); box-shadow: 0 0 0 22px rgba(8,127,128,.025),0 0 0 44px rgba(8,127,128,.018); pointer-events: none; }
+    .result-kicker { color: var(--teal-dark); font-size: 10px; letter-spacing: .12em; font-weight: 850; text-transform: uppercase; }
+    .result-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; position: relative; }
+    .result-head h2 { margin: 7px 0 0; font-size: 18px; letter-spacing: -.025em; color: var(--navy); }
+    .result-icon { width: 38px; height: 38px; display: grid; place-items: center; color: var(--teal-dark); background: var(--teal-soft); border-radius: 12px; }
+    .result-icon svg { width: 20px; height: 20px; }
+    .empty-state { position: relative; padding: 34px 15px 12px; text-align: center; }
+    .empty-illustration { width: 74px; height: 74px; display: grid; place-items: center; margin: 0 auto 16px; border-radius: 23px; background: linear-gradient(145deg,#eef8f7,#f2f6fa); color: #318b88; }
+    .empty-illustration svg { width: 34px; height: 34px; }
+    .empty-state h3 { margin: 0; font-size: 14px; color: #344a60; }
+    .empty-state p { max-width: 260px; margin: 7px auto 0; font-size: 11px; line-height: 1.6; color: #8290a0; }
+    .result-content { position: relative; margin-top: 23px; }
+    .class-label { display: inline-flex; align-items: center; gap: 7px; padding: 8px 10px; border-radius: 999px; background: var(--teal-soft); color: var(--teal-dark); font-size: 10px; font-weight: 800; }
+    .class-label.negative { color: #53687d; background: #eef2f6; }
+    .class-label .status-dot { width: 6px; height: 6px; }
+    .score-row { display: flex; align-items: baseline; gap: 8px; margin: 16px 0 1px; }
+    .score-value { color: var(--navy); font-size: 39px; letter-spacing: -.055em; line-height: 1.1; font-weight: 780; }
+    .score-unit { color: #8190a0; font-size: 11px; }
+    .score-caption { margin: 3px 0 13px; color: #718196; font-size: 10px; }
+    .meter { height: 8px; background: #edf1f5; border-radius: 999px; position: relative; overflow: visible; }
+    .meter-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg,#5db4a5,#087f80); transition: width .5s ease; }
+    .meter-threshold { position: absolute; top: -4px; width: 2px; height: 16px; background: #b47b29; border-radius: 3px; }
+    .meter-legend { display: flex; justify-content: space-between; gap: 10px; margin-top: 8px; color: #91a0af; font-size: 9px; }
+    .result-explanation { margin: 16px 0 0; padding: 12px 13px; border-radius: 10px; background: #f6f8fa; color: #64758a; font-size: 10px; line-height: 1.6; }
+    .result-explanation strong { color: #40556d; }
+    .error-box { margin-top: 14px; padding: 11px 12px; border-radius: 9px; border: 1px solid #f0d6d3; background: var(--red-soft); color: var(--red); font-size: 11px; line-height: 1.5; }
+    [hidden] { display: none !important; }
+    .metrics-panel { padding: 20px 22px 18px; }
+    .mini-heading { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 15px; }
+    .mini-heading h3 { margin: 0; color: var(--navy); font-size: 13px; letter-spacing: -.01em; }
+    .mini-heading span { color: #96a2af; font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+    .metric-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+    .metric { padding: 12px 13px; border: 1px solid #edf1f5; border-radius: 11px; background: #fbfcfd; }
+    .metric strong { display: block; color: #243d57; font-size: 21px; letter-spacing: -.04em; }
+    .metric span { display: block; margin-top: 2px; color: #8996a4; font-size: 9px; line-height: 1.4; }
+    .metrics-note { margin: 12px 1px 0; color: #8a97a5; font-size: 10px; line-height: 1.5; }
+    .about-panel { padding: 19px 21px; }
+    .about-panel h3 { display: flex; align-items: center; gap: 8px; color: var(--navy); font-size: 13px; margin: 0 0 8px; }
+    .about-panel h3 svg { color: var(--teal); width: 16px; height: 16px; }
+    .about-panel p { margin: 0; color: #748397; font-size: 10px; line-height: 1.65; }
+    .about-panel p + p { margin-top: 7px; }
+    .source-link { display: inline-flex; align-items: center; gap: 5px; margin-top: 11px; font-size: 10px; font-weight: 750; }
+    .source-link svg { width: 12px; height: 12px; }
+    footer { display: flex; justify-content: space-between; gap: 18px; border-top: 1px solid #e3eaf1; padding-top: 18px; margin-top: 27px; color: #91a0ae; font-size: 10px; }
+    footer strong { color: #68798b; font-weight: 700; }
+    .spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.45); border-top-color: white; border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @media (max-width: 900px) {
+      .hero { display: block; }
+      .hero-meta { justify-content: flex-start; margin-top: 19px; }
+      .workspace { grid-template-columns: minmax(0,1fr) minmax(290px,.8fr); gap: 15px; }
+      .form-panel { padding: 22px; }
+      .result-panel { padding: 20px; }
+    }
+    @media (max-width: 720px) {
+      .topbar { height: 66px; }
+      .topbar-inner, .page { width: min(100% - 30px,560px); }
+      .top-actions .top-link { display: none; }
+      .page { padding-top: 32px; }
+      .hero { margin-bottom: 20px; }
+      h1 { font-size: 34px; }
+      .hero-copy { font-size: 13px; }
+      .workspace { grid-template-columns: 1fr; }
+      .right-column { grid-row: 1; }
+      .result-panel { min-height: 0; }
+      .empty-state { padding: 24px 12px 8px; }
+      .form-panel { padding: 20px 17px; }
+      footer { display: block; line-height: 1.8; }
+      footer span { display: block; }
+    }
+    @media (max-width: 430px) {
+      .status-pill { font-size: 9px; padding: 8px 9px; }
+      .brand { font-size: 13px; }
+      .fields { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+      .form-bottom { display: block; }
+      .form-caption { max-width: none; margin-bottom: 14px; }
+      .form-actions { justify-content: space-between; }
+      .btn-primary { flex: 1; justify-content: center; }
+      .meta-chip { font-size: 10px; padding: 9px 10px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="/" aria-label="Stroke History Explorer home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l2.1-5.1L14 17l2.1-5H20"/><path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5"/></svg>
+        </span>
+        <span>Stroke History Explorer<small>BRFSS 2025 · Research prototype</small></span>
+      </a>
+      <div class="top-actions">
+        <span class="status-pill"><i class="status-dot"></i> Academic demonstrator</span>
+        <a class="top-link" href="https://github.com/ARGS-PYH/Stroke-prediction/blob/main/docs/RANDOM-FOREST-2025.md" target="_blank" rel="noreferrer">
+          Model report <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 17 17 7M7 7h10v10"/></svg>
+        </a>
+      </div>
+    </div>
+  </header>
 
+  <main class="page">
+    <section class="hero">
+      <div>
+        <div class="eyebrow">BRFSS 2025 · MACHINE-LEARNING DEMONSTRATOR</div>
+        <h1>Explore patterns in reported stroke history.</h1>
+        <p class="hero-copy">See how a survey-weighted machine-learning model classifies a hypothetical respondent profile using eight characteristics from the 2025 U.S. Behavioral Risk Factor Surveillance System.</p>
+      </div>
+      <div class="hero-meta" aria-label="Study summary">
+        <div class="meta-chip"><strong>354,950</strong> valid responses</div>
+        <div class="meta-chip"><strong>8</strong> study features</div>
+        <div class="meta-chip"><strong>2025</strong> survey year</div>
+      </div>
+    </section>
+
+    <aside class="notice" role="note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2.8 19a1.4 1.4 0 0 0 1.2 2.1h16a1.4 1.4 0 0 0 1.2-2.1L12 3Z"/><path d="M12 9v4m0 3h.01"/></svg>
+      <div><strong>Research use only — not a medical assessment</strong><p>The model classifies self-reported previous stroke history in a U.S. survey. It does not predict future stroke, diagnose anyone, or estimate an individual's medical risk. Use hypothetical profiles only; do not enter identifiable or patient information.</p></div>
+    </aside>
+
+    <div class="workspace">
+      <section class="panel form-panel" aria-labelledby="profile-title">
+        <div class="panel-heading">
+          <div><h2 id="profile-title">Build a respondent profile</h2><p>Enter values that match the BRFSS survey response categories.</p></div>
+          <span class="step-tag">8 INPUTS</span>
+        </div>
+
+        <form id="profile-form">
+          <div class="section-title"><span class="section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.3"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg></span>Demographics</div>
+          <div class="fields">
+            <div class="field">
+              <label for="age">Age <span class="optional">required</span></label>
+              <input id="age" name="age" type="number" min="18" max="120" inputmode="numeric" placeholder="e.g. 58" required>
+              <span class="hint">Ages 80 and above are grouped as 80+ in the source data.</span>
+            </div>
+            <div class="field">
+              <label for="sex">Sex</label>
+              <select id="sex" name="sex">
+                <option value="">Not reported / prefer not to say</option>
+                <option value="Female">Female</option>
+                <option value="Male">Male</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="section-title"><span class="section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-8-4.5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 6.5-8 11-8 11Z"/><path d="M4 12h4l2-3 3.5 6 2-3H20"/></svg></span>Health history</div>
+          <div class="fields">
+            <div class="field">
+              <label for="hypertension">Ever told you have high blood pressure?</label>
+              <select id="hypertension" name="hypertension">
+                <option value="">Not reported / not sure</option>
+                <option value="1">Yes</option><option value="0">No</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="heart">Heart attack or coronary heart disease history?</label>
+              <select id="heart" name="heart">
+                <option value="">Not reported / not sure</option>
+                <option value="1">Yes</option><option value="0">No</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="diabetes">Diabetes status</label>
+              <select id="diabetes" name="diabetes">
+                <option value="">Not reported / not sure</option>
+                <option value="Diabetes">Diabetes</option>
+                <option value="Pregnancy-only diabetes">Pregnancy-only diabetes</option>
+                <option value="No diabetes">No diabetes</option>
+                <option value="Prediabetes or borderline diabetes">Prediabetes / borderline</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="bmi">Body mass index (BMI) <span class="optional">optional</span></label>
+              <input id="bmi" name="bmi" type="number" min="10" max="100" step="0.1" inputmode="decimal" placeholder="e.g. 27.4">
+              <span class="hint">Leave blank if not available.</span>
+            </div>
+          </div>
+
+          <div class="section-title"><span class="section-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 17.5c1.3-3.7 2.8-5.5 4.6-5.5s2.5 3 4.2 3 2.4-6 4.2-6 2.5 2.2 3 3.5"/><path d="M4 20h16M6 6l2 2m0-2L6 8"/></svg></span>Lifestyle</div>
+          <div class="fields">
+            <div class="field">
+              <label for="smoking">Smoking status</label>
+              <select id="smoking" name="smoking">
+                <option value="">Not reported / not sure</option>
+                <option value="Never smoked">Never smoked</option>
+                <option value="Former smoker">Former smoker</option>
+                <option value="Current smoker - every day">Current smoker — every day</option>
+                <option value="Current smoker - some days">Current smoker — some days</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="activity">Any leisure-time physical activity in the past 30 days?</label>
+              <select id="activity" name="activity">
+                <option value="">Not reported / not sure</option>
+                <option value="1">Yes</option><option value="0">No</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-bottom">
+            <p class="form-caption">Unanswered values remain missing and are handled by the model's training-fitted preprocessing pipeline.</p>
+            <div class="form-actions">
+              <button class="btn btn-quiet" type="reset">Clear</button>
+              <button class="btn btn-primary" id="submit-button" type="submit">Run classification <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
+            </div>
+          </div>
+          <div id="form-error" class="error-box" role="alert" hidden></div>
+        </form>
+      </section>
+
+      <aside class="right-column" aria-label="Model output and study information">
+        <section class="panel result-panel" aria-live="polite" aria-labelledby="result-title">
+          <div class="result-head">
+            <div><div class="result-kicker">MODEL OUTPUT</div><h2 id="result-title">Classification result</h2></div>
+            <span class="result-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 18V6m0 12h16"/><path d="m7 14 3-3 3 2 5-6"/></svg></span>
+          </div>
+          <div class="empty-state" id="empty-state">
+            <div class="empty-illustration"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5a8.5 8.5 0 1 0 8.5 8.5"/><path d="M4 12h4l2.1-4.5L14 17l2.1-5H20"/><path d="M17 3v5m-2.5-2.5h5"/></svg></div>
+            <h3>Ready when you are</h3>
+            <p>Complete the profile and run the model to see how it classifies this survey-style response.</p>
+          </div>
+          <div class="result-content" id="result-content" hidden>
+            <div class="class-label" id="class-label"><i class="status-dot"></i><span id="class-text"></span></div>
+            <div class="score-row"><div class="score-value" id="score-value">—</div><span class="score-unit">model score</span></div>
+            <p class="score-caption">Estimated probability of the BRFSS “Yes” response class</p>
+            <div class="meter" role="img" aria-label="Model score relative to classification threshold"><div class="meter-fill" id="meter-fill"></div><div class="meter-threshold" id="meter-threshold"></div></div>
+            <div class="meter-legend"><span>0%</span><span id="threshold-label">Selected threshold: 3.39%</span><span>100%</span></div>
+            <p class="result-explanation" id="result-explanation"></p>
+          </div>
+          <div class="error-box" id="api-error" role="alert" hidden></div>
+        </section>
+
+        <section class="panel metrics-panel">
+          <div class="mini-heading"><h3>Model evaluation snapshot</h3><span>Held-out sample</span></div>
+          <div class="metric-grid">
+            <div class="metric"><strong>0.813</strong><span>Weighted ROC-AUC</span></div>
+            <div class="metric"><strong>0.142</strong><span>Weighted PR-AUC</span></div>
+            <div class="metric"><strong>78.7%</strong><span>Weighted sensitivity</span></div>
+            <div class="metric"><strong>8.8%</strong><span>Weighted precision</span></div>
+          </div>
+          <p class="metrics-note">Precision is low: many profiles classified into the “Yes” group did not report a previous stroke. These are weighted point estimates; design-based confidence intervals have not been calculated.</p>
+        </section>
+
+        <section class="panel about-panel">
+          <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></svg>What is being classified?</h3>
+          <p>The target is the respondent's answer to: “Has a health professional ever told you that you had a stroke?” It is a measure of <strong>self-reported previous stroke history</strong>, not future stroke incidence.</p>
+          <p>The model uses U.S. BRFSS 2025 survey data. Its results have not been validated for Nigerian populations or clinical use.</p>
+          <a class="source-link" href="https://www.cdc.gov/brfss/annual_data/2025/annual_2025.html" target="_blank" rel="noreferrer">CDC 2025 data & documentation <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+        </section>
+      </aside>
+    </div>
+
+    <footer><span><strong>Stroke History Explorer</strong> · Final-year research demonstrator</span><span>CDC BRFSS 2025 · Survey-weighted Logistic Regression · Not for clinical use</span></footer>
+  </main>
+
+  <script>
+    const form = document.getElementById('profile-form');
+    const submitButton = document.getElementById('submit-button');
+    const emptyState = document.getElementById('empty-state');
+    const resultContent = document.getElementById('result-content');
+    const apiError = document.getElementById('api-error');
+    const formError = document.getElementById('form-error');
+
+    const selectedBinary = (value) => value === '' ? null : Number(value);
+    const selectedCategory = (value) => value === '' ? null : value;
+
+    function clearMessages() {
+      apiError.hidden = true;
+      formError.hidden = true;
+      apiError.textContent = '';
+      formError.textContent = '';
+    }
+
+    function showResult(result) {
+      const positive = result.classification === 1;
+      const score = Number(result.positive_class_probability);
+      const threshold = Number(result.threshold);
+      const pct = score * 100;
+      const thresholdPct = threshold * 100;
+
+      emptyState.hidden = true;
+      resultContent.hidden = false;
+      document.getElementById('class-label').classList.toggle('negative', !positive);
+      document.getElementById('class-text').textContent = result.classification_label;
+      document.getElementById('score-value').textContent = pct.toFixed(2) + '%';
+      document.getElementById('meter-fill').style.width = Math.max(0, Math.min(100, pct)) + '%';
+      document.getElementById('meter-threshold').style.left = thresholdPct + '%';
+      document.getElementById('threshold-label').textContent = 'Selected threshold: ' + thresholdPct.toFixed(2) + '%';
+      document.getElementById('result-explanation').innerHTML = '<strong>How to read this:</strong> the model score is ' + pct.toFixed(2) + '%, compared with the ' + thresholdPct.toFixed(2) + '% development-selected threshold. ' + (positive ? 'The score is at or above the threshold, so the profile is classified in the survey “Yes” group.' : 'The score is below the threshold, so the profile is classified in the survey “No” group.') + ' This is not a personal medical probability.';
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      clearMessages();
+      if (!form.reportValidity()) return;
+
+      const age = Number(form.elements.age.value);
+      if (!Number.isInteger(age) || age < 18 || age > 120) {
+        formError.textContent = 'Enter an age from 18 to 120. Ages 80 and above are grouped as 80+.';
+        formError.hidden = false;
+        return;
+      }
+
+      const payload = {
+        age,
+        sex: selectedCategory(form.elements.sex.value),
+        hypertension: selectedBinary(form.elements.hypertension.value),
+        chd_or_mi_history: selectedBinary(form.elements.heart.value),
+        diabetes_status: selectedCategory(form.elements.diabetes.value),
+        bmi: form.elements.bmi.value === '' ? null : Number(form.elements.bmi.value),
+        smoking_status: selectedCategory(form.elements.smoking.value),
+        physical_activity_30d: selectedBinary(form.elements.activity.value)
+      };
+
+      submitButton.disabled = true;
+      submitButton.innerHTML = '<span class="spinner" aria-hidden="true"></span> Running model…';
+      apiError.hidden = true;
+      try {
+        const response = await fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.detail || 'The model could not process this profile.');
+        showResult(result);
+      } catch (error) {
+        apiError.textContent = error.message || 'Could not reach the model API. Check that the application server is running.';
+        apiError.hidden = false;
+      } finally {
+        submitButton.disabled = false;
+        submitButton.innerHTML = 'Run classification <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>';
+      }
+    });
+
+    form.addEventListener('reset', () => {
+      clearMessages();
+      resultContent.hidden = true;
+      emptyState.hidden = false;
+    });
+  </script>
 </body>
 </html>
