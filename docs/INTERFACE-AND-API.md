@@ -44,3 +44,17 @@ Open http://127.0.0.1:8000. API documentation is available at http://127.0.0.1:8
 - The header checks the `/health` endpoint and shows whether the model artifact is available.
 - The result meter adjusts its visible range to keep the model score and selected threshold readable together. The displayed range is a visual aid and does not change the model score or classification.
 - The form identifies age as required and the remaining seven predictors as optional. Unanswered predictors remain missing and are handled by the fitted preprocessing pipeline.
+
+
+## Interface design and interactions
+
+The single-page interface is arranged as a respondent profile form and a model-output panel, with additional sections for the model, data and methods, and the research disclaimer.
+
+- The **Try example** button fills the form with a hypothetical respondent profile but does not submit it automatically.
+- The header uses the `/health` endpoint to report whether the model artifact is loaded.
+- Submitting the form sends the same eight model inputs to `POST /predict`; no browser-side scoring or substitute model is used.
+- The result shows the returned classification, model score, and development-selected threshold. The meter's visual scale adjusts to keep low scores and the threshold legible; the displayed score and classification are unchanged.
+- The page reports the held-out model metrics and warns that precision is low and design-based confidence intervals have not been calculated.
+- The layout adapts to narrow screens and respects reduced-motion preferences.
+
+Use hypothetical profiles only. The sample button contains illustrative input values, while every displayed prediction is produced by the fitted Logistic Regression pipeline.
