@@ -31,6 +31,7 @@ ENV/
 /models/*
 *.joblib
 !/models/logistic_regression_primary_eight_features.joblib
+!/models/logistic_regression_primary_eight_features.joblib.gz
 *.pkl
 *.pickle
 
