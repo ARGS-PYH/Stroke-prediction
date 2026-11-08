@@ -9,6 +9,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Literal
 
+import gzip
 import joblib
 import pandas as pd
 from fastapi import FastAPI, HTTPException
@@ -16,7 +17,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 BASE_DIR = Path(__file__).resolve().parent
-MODEL_PATH = BASE_DIR / "models" / "logistic_regression_primary_eight_features.joblib"
+MODEL_PATH = BASE_DIR / "models" / "logistic_regression_primary_eight_features.joblib.gz"
 INDEX_PATH = BASE_DIR / "index.html"
 
 # Development-only out-of-fold threshold selected using weighted Youden's J.
@@ -34,7 +35,8 @@ FEATURE_COLUMNS = [
 ]
 
 try:
-    MODEL = joblib.load(MODEL_PATH)
+    with gzip.open(MODEL_PATH, "rb") as model_stream:
+        MODEL = joblib.load(model_stream)
     MODEL_LOAD_ERROR: str | None = None
 except Exception as exc:  # Keep API health route available to explain setup errors.
     MODEL = None
