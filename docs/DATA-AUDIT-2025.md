@@ -23,7 +23,7 @@ The audit script normalizes the archive member name when extracting it into a te
 | Check | Result |
 |---|---:|
 | Respondent records | 356,158 |
-| Variables | 283 |
+| Variables | 284 |
 | Shortlisted audit variables present | 12 of 12 |
 | Distinct sample-design strata values | 2,090 |
 | Distinct PSU values | 19,779 |
